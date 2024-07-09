@@ -7,9 +7,10 @@ import SellTokenDialog from './SellTokenDialog';
 
 // --------------------------- END NEW MODAL/DIALOG CODE -----------------------------------------------------
 const openDialog = (dialogType:string) => {
-    let dialog:any = document.querySelector(dialogType)
-    dialog.showModal();
-  }
+  // alert("Opening Dialog "+ dialogType)
+  let dialog:any = document.querySelector(dialogType)
+  dialog.showModal();
+}
 
 export {
     openDialog,

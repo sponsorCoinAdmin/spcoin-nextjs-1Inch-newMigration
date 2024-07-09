@@ -30,8 +30,13 @@ const BuyContainer = ({activeAccount, buyAmount, buyTokenContract, setBuyAmount,
         <div className={styles["buySell"]}>You receive</div>
         <div className={styles["assetBalance"]}>Balance: {balanceOf}</div>
         {IsSpCoin ?
-          <AddSponsorButton activeAccount={activeAccount} buyTokenContract={buyTokenContract} setDisplayState={setDisplayState} />
-          : null}
+          <>
+            <AddSponsorButton activeAccount={activeAccount} buyTokenContract={buyTokenContract} setDisplayState={setDisplayState} />
+            <div id="sponsoredBalance" className={styles["sponsoredBalance"]}>
+              Sponsored Balance: {"{ToDo}"}
+              {getERC20WagmiClientBalanceOf('0x858BDEe77B06F29A3113755F14Be4B23EE6D6e59', `0xc2132D05D31c914a87C6611C10748AEb04B58e8F` || "")}
+            </div>
+          </> : null}
       </div>
     );
   } catch (err:any) {

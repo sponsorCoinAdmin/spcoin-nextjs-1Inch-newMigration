@@ -176,12 +176,6 @@
   cursor: pointer;
 }
 
-.cogImg2:hover {
-  color: red;
-  rotate: 360deg;
-  cursor: pointer;
-}
-
 .cogImg2 {
   position: absolute;
   object-fit: contain;
@@ -189,6 +183,12 @@
   transition: 0.3s;
   top: 12px;
   right: 12px;
+}
+
+.cogImg2:hover {
+  color: red;
+  rotate: 360deg;
+  cursor: pointer;
 }
 
 .elementLogo {
@@ -286,7 +286,6 @@
   opacity: 0.1; 
   font-size: 14px;
 }
-
 
 .manageSponsorshipsDiv {
   /* display: none; */
@@ -580,5 +579,5 @@
   top: 13px;
   left: 11px;
   font-size: 14px;
-  color: #94a3b8; 
+  color: #94a3b8;
 }

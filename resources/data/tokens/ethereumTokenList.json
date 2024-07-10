@@ -52,7 +52,7 @@
         "name": "Floki",
         "symbol": "FLOKI",
         "address": "0xcf0C122c6b73ff809C693DB761e7BaeBe62b6a2E",
-        "decimals": 18,
+        "decimals": 9,
         "img": "/resources/images/tokens/0xcf0C122c6b73ff809C693DB761e7BaeBe62b6a2E.png"
     },
     {
@@ -107,7 +107,7 @@
         "chainId": 1,
         "name": "USD Coin Test",
         "symbol": "USDC",
-        "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        "address": "0xdAC17F958D2ee523a2206206994597C13D831ec8",
         "decimals": 6,
         "img": "/resources/images/tokens/0xdac17f958d2ee523a2206206994597c13d831ec7.png"
     },

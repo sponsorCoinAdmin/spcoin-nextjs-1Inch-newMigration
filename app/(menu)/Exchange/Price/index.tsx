@@ -11,11 +11,9 @@ import {
 import useSWR from "swr";
 import { useState, useEffect } from "react";
 import { formatUnits, parseUnits } from "ethers";
-import { useReadContracts, useSwitchChain  } from 'wagmi' 
+import { useReadContracts, useAccount } from 'wagmi' 
 import { erc20Abi } from 'viem' 
-import { watchAccount } from "@wagmi/core";
 import { WalletElement, TokenContract, EXCHANGE_STATE, ExchangeContext, DISPLAY_STATE } from '@/lib/structure/types';
-import { getNetworkName } from '@/lib/network/utils';
 import { fetcher, processError } from '@/lib/0X/fetcher';
 import { isSpCoin, setValidPriceInput, updateBalance } from '@/lib/spCoin/utils';
 import type { PriceResponse } from "@/app/api/types";
@@ -33,7 +31,6 @@ import IsLoadingPrice from '@/components/containers/IsLoadingPrice';
 import { exchangeContext, resetContextNetwork } from "@/lib/context";
 import QuoteButton from '@/components/Buttons/QuoteButton';
 import { setExchangeState } from '@/app/(menu)/Exchange';
-import { wagmiConfig } from '@/lib/wagmi/wagmiConfig';
 import { getERC20WagmiClientBalanceOf } from '@/lib/wagmi/erc20WagmiClientRead';
 import ManageSponsorships from '@/components/Dialogs/ManageSponsorships';
 
@@ -44,32 +41,43 @@ export default function PriceView({activeAccount, price, setPrice}: {
     setPrice: (price: PriceResponse | undefined) => void;
 }) {
   const connectedWalletAddr = activeAccount.address
-  // alert(`EXCHANGE/PRICE HERE 1exchangeContext = \n ${exchangeContext}`)
 
   try {
 // console.debug("########################### PRICE RERENDERED #####################################")
-    const [chainId, setChainId] = useState(exchangeContext.data.chainId);
-    const [network, setNetwork] = useState(exchangeContext.data.networkName);
     const [sellAmount, setSellAmount] = useState<string>(exchangeContext.data.sellAmount);
     const [buyAmount, setBuyAmount] = useState<string>(exchangeContext.data.buyAmount);
     const [tradeDirection, setTradeDirection] = useState(exchangeContext.data.tradeDirection);
     const [state, setState] = useState<EXCHANGE_STATE>(exchangeContext.data.state);
     const [slippage, setSlippage] = useState<string>(exchangeContext.data.slippage);
     const [displayState, setDisplayState] = useState<DISPLAY_STATE>(exchangeContext.data.displayState);
-
     const [sellTokenContract, setSellTokenContract] = useState<TokenContract>(exchangeContext.sellTokenContract);
     const [buyTokenContract, setBuyTokenContract] = useState<TokenContract>(exchangeContext.buyTokenContract);
     const [recipientWallet, setRecipientElement] = useState<WalletElement>(exchangeContext.recipientWallet);
     const [agentWallet, setAgentElement] = useState(exchangeContext.agentWallet);
-
     const [errorMessage, setErrorMessage] = useState<Error>({ name: "", message: "" });
-    // alert("EXCHANGE/PRICE HERE 2")
 
     let buyBalanceOf = "0";
     let sellBalanceOf = "0";
+    const { chain } = useAccount();
 
     useEffect(() => {
-      console.log(`useEffect(() =>`);
+      alert(`Price:useEffect(() => chain = ${JSON.stringify(chain, null, 2)}\n `);
+      if (chain != undefined && exchangeContext.data.chainId !== chain.id) {
+        resetContextNetwork(chain)
+        console.debug(`exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`)
+        setSellTokenContract(exchangeContext.sellTokenContract);
+        setBuyTokenContract(exchangeContext.buyTokenContract);
+        setRecipientElement(exchangeContext.recipientWallet);
+        setAgentElement(exchangeContext.agentWallet);
+        setDisplayState(exchangeContext.data.displayState);
+        setState(exchangeContext.data.state);
+        setSlippage(exchangeContext.data.slippage);
+        setExchangeState(exchangeContext.data.state);
+      }
+    }, [chain]);
+
+    useEffect(() => {
+      console.debug(`useEffect(() =>`);
       sellBalanceOf = (getERC20WagmiClientBalanceOf(activeAccount.address, sellTokenContract.address || "") || "0");
     }, [sellTokenContract.address]);
 
@@ -83,28 +91,23 @@ export default function PriceView({activeAccount, price, setPrice}: {
     }, [activeAccount.address]);
 
     useEffect(() => {
-      console.debug(`PRICE:useEffect:chainId = ${chainId}`)
-      exchangeContext.data.chainId = chainId;
-    },[chainId]);
-
-    useEffect(() => {
-      console.debug(`PRICE:setDisplayPanels(${displayState})`);
+      console.debug(`PRICE:useEffect:setDisplayPanels(${displayState})`);
       setDisplayPanels(displayState);
       exchangeContext.data.displayState = displayState;
     },[displayState]);
 
     useEffect(() => {
-      console.debug('Price slippage changed to  ' + slippage);
+      console.debug('PRICE:useEffect slippage changed to  ' + slippage);
       exchangeContext.data.slippage = slippage;
     }, [slippage]);
 
     useEffect(() => {
-      console.debug('Price state changed to  ' + state.toString);
+      console.debug('PRICE:useEffect: state changed to  ' + state.toString);
       exchangeContext.data.state = state;
     }, [state]);
 
     useEffect(() => {
-      console.debug("sellTokenContract.symbol changed to " + sellTokenContract.name);
+      console.debug("PRICE:useEffect:sellTokenContract.symbol changed to " + sellTokenContract.name);
       exchangeContext.sellTokenContract = sellTokenContract;
     }, [sellTokenContract]);
 
@@ -117,7 +120,7 @@ export default function PriceView({activeAccount, price, setPrice}: {
     }, [buyTokenContract]);
 
     useEffect(() => {
-      console.debug("recipientWallet changed to " + recipientWallet.name);
+      console.debug("PRICE:useEffect:recipientWallet changed to " + recipientWallet.name);
       exchangeContext.recipientWallet = recipientWallet;
     }, [recipientWallet]);
 
@@ -126,40 +129,6 @@ export default function PriceView({activeAccount, price, setPrice}: {
         openDialog("#errorDialog");
       }
     }, [errorMessage]);
-
-    const processNetworkChange = (newChainId: any) => {
-      console.debug(`======================================================================`);
-      console.debug(`processNetworkChange:newChainId = ${JSON.stringify(newChainId,null,2)}`)
-      setChainId(newChainId)
-      let newNetworkName = getNetworkName(newChainId);
-
-      // const newNetworkName:string = network?.chain?.name.toLowerCase()
-      console.debug("newNetworkName = " + newNetworkName);
-      console.debug("exchangeContext.networkName = " + exchangeContext.data.networkName);
-
-      // console.debug(`exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`)
-      if (exchangeContext.data.networkName !== newNetworkName) {
-        resetContextNetwork(exchangeContext, newNetworkName)
-        console.debug("UPDATED exchangeContext.networkName = " + exchangeContext.data.networkName);
-        console.debug(`exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`)
-        setNetwork(newNetworkName);
-        console.debug("------------------------ BEFORE SELL TOKEN --------------------------");
-        console.debug(`BEFORE exchangeContext.sellToken = ${JSON.stringify(exchangeContext.sellTokenContract, null, 2)}`)
-        console.debug(`BEFORE sellTokenContract = ${JSON.stringify(sellTokenContract, null, 2)}`)
-        setSellTokenContract(exchangeContext.sellTokenContract);
-        console.debug(`AFTER  sellTokenContract = ${JSON.stringify(sellTokenContract, null, 2)}`)
-        console.debug("------------------------ AFTER SELL TOKEN ---------------------------");
-        setBuyTokenContract(exchangeContext.buyTokenContract);
-        setRecipientElement(exchangeContext.recipientWallet);
-        setAgentElement(exchangeContext.agentWallet);
-        setDisplayState(exchangeContext.data.displayState);
-        setState(exchangeContext.data.state);
-        setSlippage(exchangeContext.data.slippage);
-        setExchangeState(exchangeContext.data.state);
-        console.debug(`sellTokenContract = ${JSON.stringify(sellTokenContract, null, 2)}`)
-        console.debug("======================================================================");
-      }
-    };
 
   // This code currently only works for sell buy will default to undefined
     const parsedSellAmount = sellAmount && tradeDirection === "sell"
@@ -170,9 +139,11 @@ export default function PriceView({activeAccount, price, setPrice}: {
       ? parseUnits(buyAmount, buyTokenContract.decimals).toString()
       : undefined;
 
+    console.debug(`Initializing Fetcher with "/api/" + chain?.name.toLowerCase() + "/0X/price"`)
+
     const { isLoading: isLoadingPrice } = useSWR(
       [
-        "/api/" + network + "/0X/price",
+        "/api/" + chain?.name.toLowerCase() + "/0X/price",
         {
           sellToken: sellTokenContract.address,
           buyToken: buyTokenContract.address,

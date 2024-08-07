@@ -3,11 +3,11 @@ import { Address } from 'viem'
 import { getERC20WagmiClientDecimals  } from '@/lib/wagmi/erc20WagmiClientRead'
 
 type Props = {
-  TOKEN_CONTRACT:Address
+  TOKEN_CONTRACT_ADDRESS:Address
 }
 
 const contractDecimals = ({ TOKEN_CONTRACT}: Props) => {
-  let decimals    = getERC20WagmiClientDecimals(TOKEN_CONTRACT)
+  const decimals    = getERC20WagmiClientDecimals(TOKEN_CONTRACT)
   return (
     <>
       <hr className="border-top: 3px dashed #bbb"/>

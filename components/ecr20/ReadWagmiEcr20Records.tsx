@@ -3,7 +3,7 @@ import { Address } from 'viem'
 import { getERC20WagmiClientRecords, formatDecimals } from '@/lib/wagmi/erc20WagmiClientRead'
 
 type Props = {
-  TOKEN_CONTRACT:Address
+  TOKEN_CONTRACT_ADDRESS:Address
 }
 
 const ReadWagmiEcr20Records = ({ TOKEN_CONTRACT}: Props) => {
@@ -13,10 +13,10 @@ const ReadWagmiEcr20Records = ({ TOKEN_CONTRACT}: Props) => {
   const decimalRec = wagmiRecords.decimalRec
   const totalSupplyRec = wagmiRecords.totalSupplyRec
 
-  let name = nameRec.status === 'success' ? "Token Name : " + nameRec.data : null
-  let symbol = symbolRec.status === 'success' ? "Symbol : " + symbolRec.data : null
-  let decimals = decimalRec?.status === 'success' ? "Decimals : " + decimalRec?.data : null
-  let totalSupply = totalSupplyRec.status === 'success' ? "Total Supply : " + totalSupplyRec.data : null
+  const name = nameRec.status === 'success' ? nameRec.data : null
+  const symbol = symbolRec.status === 'success' ?  symbolRec.data : null
+  const decimals = decimalRec?.status === 'success' ? decimalRec?.data : null
+  const totalSupply = totalSupplyRec.status === 'success' ? totalSupplyRec.data : null
 
   return (
     <>

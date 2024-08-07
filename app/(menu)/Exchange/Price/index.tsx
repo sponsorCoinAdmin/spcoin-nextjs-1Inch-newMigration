@@ -29,20 +29,15 @@ import PriceButton from '@/components/Buttons/PriceButton';
 import FeeDisclosure from '@/components/containers/FeeDisclosure';
 import IsLoadingPrice from '@/components/containers/IsLoadingPrice';
 import { exchangeContext, resetContextNetwork } from "@/lib/context";
-import QuoteButton from '@/components/Buttons/QuoteButton';
-import { getERC20WagmiClientBalanceOf } from '@/lib/wagmi/erc20WagmiClientRead';
 import ManageSponsorships from '@/components/Dialogs/ManageSponsorships';
+import { BURN_ADDRESS } from '@/lib/network/utils';
 
 //////////// Price Code
-export default function PriceView({activeAccount, price, setPrice}: {
-    activeAccount: any;
-    price: PriceResponse | undefined;
-    setPrice: (price: PriceResponse | undefined) => void;
-}) {
+export default function PriceView() {
 
   try {
-// console.debug("########################### PRICE RERENDERED #####################################")
-
+    const [price, setPrice] = useState<PriceResponse | undefined>();
+    const tradeData:TradeData = exchangeContext.tradeData;
     const [sellAmount, setSellAmount] = useState<string>(exchangeContext.tradeData.sellAmount);
     const [buyAmount, setBuyAmount] = useState<string>(exchangeContext.tradeData.buyAmount);
     const [tradeDirection, setTradeDirection] = useState(exchangeContext.tradeData.tradeDirection);
@@ -53,21 +48,20 @@ export default function PriceView({activeAccount, price, setPrice}: {
     const [recipientWallet, setRecipientElement] = useState<WalletElement>(exchangeContext.recipientWallet);
     const [agentWallet, setAgentElement] = useState(exchangeContext.agentWallet);
     const [errorMessage, setErrorMessage] = useState<Error>({ name: "", message: "" });
+    const ACTIVE_ACCOUNT = useAccount()
 
-    const tradeData:TradeData = exchangeContext.tradeData;
-    tradeData.connectedWalletAddr = activeAccount.address;
+    tradeData.connectedWalletAddr = ACTIVE_ACCOUNT.address || BURN_ADDRESS;
     const connectedWalletAddr = tradeData.connectedWalletAddr
 
-    // let buyBalanceOf = "0";
-    // let sellBalanceOf = "0";
-    const { chain } = useAccount();
+    // useEffect(() => {
+    //   tradeData.sellBalanceOf = formatUnits(tradeData.sellBalanceOf, tradeData.sellDecimals);
+    //   setSellBalanceOf(tradeData.sellBalanceOf);
+    //   // alert(`formatUnits(${tradeData.sellBalanceOf}, ${tradeData.sellDecimals}) = ${tradeData.sellBalanceOf}`)
+    // }, [tradeData.sellBalanceOf]);
+
 
     useEffect(() => {
-      // alert(`Price:exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`)
-    }, []);
-
-    useEffect(() => {
-      // alert(`Price:useEffect(() => chain = ${JSON.stringify(chain, null, 2)}\n `);
+      const chain = ACTIVE_ACCOUNT.chain;
       if (chain != undefined && exchangeContext.tradeData.chainId !== chain.id) {
         resetContextNetwork(chain)
         console.debug(`exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`)
@@ -79,7 +73,13 @@ export default function PriceView({activeAccount, price, setPrice}: {
         setSlippage(exchangeContext.tradeData.slippage);
       }
       // alert(`Price:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}\n `);
-    }, [chain]);
+    }, [ACTIVE_ACCOUNT.chain]);
+
+// tradeData.sellDecimals = sellDecimals
+
+  // useEffect(() => {
+  //   alert(`SellContainer:tradeData = ${JSON.stringify(tradeData, null, 2)}`)
+  // }, []);
 
     useEffect(() => {
       // alert(`Price:sellAmount = ${sellAmount`)
@@ -88,24 +88,10 @@ export default function PriceView({activeAccount, price, setPrice}: {
     }, [sellAmount]);
 
     useEffect(() => {
-      // alert(`Price:sellAmount = ${buyAmount`)
-      tradeData.sellAmount = buyAmount;
+      // alert(`Price:buyAmount = ${buyAmount`)
+      tradeData.buyAmount = buyAmount;
       // alert(`exchangeContext.tradeData.buyAmount:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`);
     }, [buyAmount]);
-
-    useEffect(() => {
-      console.debug(`useEffect(() =>`);
-      tradeData.sellBalanceOf = (getERC20WagmiClientBalanceOf(connectedWalletAddr, sellTokenContract.address || "") || "0");
-    }, [sellTokenContract.address]);
-
-    useEffect(() => {
-      tradeData.buyBalanceOf = (getERC20WagmiClientBalanceOf(connectedWalletAddr, buyTokenContract.address || "") || "0");
-    }, [buyTokenContract.address]);
-
-    useEffect(() => {
-      tradeData.buyBalanceOf = (getERC20WagmiClientBalanceOf(connectedWalletAddr, buyTokenContract.address || "") || "0");
-      tradeData.sellBalanceOf = (getERC20WagmiClientBalanceOf(connectedWalletAddr, sellTokenContract.address || "") || "0");
-    }, [connectedWalletAddr]);
 
     useEffect(() => {
       console.debug(`PRICE:useEffect:setDisplayPanels(${displayState})`);
@@ -151,9 +137,7 @@ export default function PriceView({activeAccount, price, setPrice}: {
       ? parseUnits(buyAmount, buyTokenContract.decimals).toString()
       : undefined;
 
-    console.debug(`Initializing Fetcher with "/api/" + ${chain?.name.toLowerCase()} + "/0X/price"`)
-
-    const apiCall = "http://localhost:3000/api/" + tradeData.networkName + "/0X/price";
+    // console.debug(`Initializing Fetcher with "/api/" + ${tradeData.networkName} + "/0X/price"`)
 
     const getPriceApiTransaction = (data:any) => {
       let priceTransaction = `${apiCall}`
@@ -165,6 +149,8 @@ export default function PriceView({activeAccount, price, setPrice}: {
       priceTransaction += JSON.stringify(data, null, 2)
       return priceTransaction;
     }
+
+    const apiCall = "http://localhost:3000/api/" + tradeData.networkName + "/0X/price";
 
     const { isLoading: isLoadingPrice } = useSWR(
       [
@@ -184,11 +170,11 @@ export default function PriceView({activeAccount, price, setPrice}: {
       {
         onSuccess: (data) => {
           if (!data.code) {
-            let dataMsg = `SUCCESS: apiCall => ${getPriceApiTransaction(data)}`
-            console.log(dataMsg)
+            // let dataMsg = `SUCCESS: apiCall => ${getPriceApiTransaction(data)}`
+            // console.log(dataMsg)
 
             setPrice(data);
-            console.debug(formatUnits(data.buyAmount, buyTokenContract.decimals), data);
+            // console.debug(formatUnits(data.buyAmount, buyTokenContract.decimals), data);
             setBuyAmount(formatUnits(data.buyAmount, buyTokenContract.decimals));
           }
           else {
@@ -201,7 +187,8 @@ export default function PriceView({activeAccount, price, setPrice}: {
             // errMsg += JSON.stringify(data, null, 2)
  
             // throw {errCode: ERROR_0X_RESPONSE, errMsg: errMsg}
-            alert(errMsg)
+            // alert(errMsg);
+            console.log(errMsg);
           }
         },
         onError: (error) => {
@@ -239,12 +226,11 @@ export default function PriceView({activeAccount, price, setPrice}: {
       ] 
     }) 
 
-    const disabled = result && sellAmount
-      ? parseUnits(sellAmount, sellTokenContract.decimals) > 0 // ToDo FIX This result.value
+    const disabled = result && sellAmount // ToDo FIX This result.value
+      ? parseUnits(sellAmount, sellTokenContract.decimals) > 0
       : true;
 
     try {
-        // console.debug("Price:connectedWalletAddr = " + connectedWalletAddr)
       return (
         <form autoComplete="off">
           <SellTokenDialog connectedWalletAddr={connectedWalletAddr} buyTokenContract={buyTokenContract} callBackSetter={setSellTokenContract} />
@@ -255,17 +241,26 @@ export default function PriceView({activeAccount, price, setPrice}: {
           <ErrorDialog errMsg={errorMessage} />
           <div className={styles.tradeContainer}>
             <TradeContainerHeader slippage={slippage} setSlippageCallback={setSlippage}/>
-            <SellContainer activeAccount={activeAccount} sellAmount={sellAmount} sellTokenContract={sellTokenContract} setSellAmount={setSellAmount} disabled={false} setDisplayState={setDisplayState}/>
-            <BuyContainer activeAccount={activeAccount} buyAmount={buyAmount} buyTokenContract={buyTokenContract} setBuyAmount={setBuyAmount} disabled={false} setDisplayState={setDisplayState} />          
+            <SellContainer activeAccount={ACTIVE_ACCOUNT}
+                           sellAmount={sellAmount}
+                           sellTokenContract={sellTokenContract}
+                           setSellAmount={setSellAmount}
+                           disabled={false}
+                           setDisplayState={setDisplayState}/>
+            <BuyContainer  activeAccount={ACTIVE_ACCOUNT}
+                           buyAmount={buyAmount}
+                           buyTokenContract={buyTokenContract}
+                           setBuyAmount={setBuyAmount}
+                           disabled={false}
+                           setDisplayState={setDisplayState} />          
             <BuySellSwapButton sellTokenContract={sellTokenContract} buyTokenContract={buyTokenContract} setSellTokenContract={setSellTokenContract} setBuyTokenContract={setBuyTokenContract} />
-            {/* <PriceButton exchangeContext={exchangeContext} connectedWalletAddr={connectedWalletAddr} sellTokenContract={sellTokenContract} buyTokenContract={buyTokenContract} sellBalance={tradeData.sellBalanceOf} disabled={disabled} slippage={slippage} /> */}
             <PriceButton exchangeContext={exchangeContext} />
               {
                 // <QuoteButton sendTransaction={sendTransaction}/>
               }
             <RecipientContainer recipientWallet={recipientWallet} setDisplayState={setDisplayState}/>
             <SponsorRateConfig setDisplayState={setDisplayState}/>
-            <AffiliateFee price={price} sellTokenContract={sellTokenContract} buyTokenContract= {buyTokenContract} />
+            <AffiliateFee price={price} sellTokenContract={sellTokenContract} buyTokenContract={buyTokenContract} />
           </div>
           <FeeDisclosure/>
           <IsLoadingPrice isLoadingPrice={isLoadingPrice} />

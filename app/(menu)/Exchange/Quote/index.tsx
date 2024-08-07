@@ -10,7 +10,7 @@ import {
 } from '@/components/Dialogs/Dialogs';
 import useSWR from "swr";
 import { useState, useEffect } from "react";
-import { formatUnits, parseUnits } from "ethers";
+import { formatUnits } from "ethers";
 import { useEstimateGas, useSendTransaction } from 'wagmi' 
 import { WalletElement, TokenContract, EXCHANGE_STATE, ExchangeContext, DISPLAY_STATE } from '@/lib/structure/types';
 import { fetcher, processError } from '@/lib/0X/fetcher';
@@ -207,7 +207,7 @@ export default function QuoteView({
       onSuccess: (data) => {
         setQuote(data);
         console.log("quote", data);
-        console.log(formatUnits(data.buyAmount, buyTokenContract.decimals), data);
+        // console.log(formatUnits(data.buyAmount, buyTokenContract.decimals), data);
       },
       onError: (error) => {
         processError(
@@ -240,7 +240,7 @@ export default function QuoteView({
   }
 
   console.log("quote" + JSON.stringify(quote,null,2));
-  console.log(formatUnits(quote.sellAmount, sellTokenContract.decimals));
+  // console.log(formatUnits(quote.sellAmount, sellTokenContract.decimals));
 
   return (
     <form autoComplete="off">

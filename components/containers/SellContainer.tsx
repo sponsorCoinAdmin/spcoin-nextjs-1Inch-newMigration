@@ -1,14 +1,18 @@
+import { useEffect, useState } from 'react';
+
+import { exchangeContext } from "@/lib/context";
+
 import styles from '@/styles/Exchange.module.css';
 import AssetSelect from './AssetSelect';
-import { TokenContract } from '@/lib/structure/types';
+import { TradeData, TokenContract } from '@/lib/structure/types';
 import { setValidPriceInput } from '@/lib/spCoin/utils';
-import { getERC20WagmiClientBalanceOf } from '@/lib/wagmi/erc20WagmiClientRead';
+import { getERC20WagmiClientBalanceOf, getERC20WagmiClientDecimals, getFormattedClientBalanceOf } from '@/lib/wagmi/erc20WagmiClientRead';
 import { isSpCoin } from '@/lib/spCoin/utils';
 import ManageSponsorsButton from '../Buttons/ManageSponsorsButton';
 import { DISPLAY_STATE } from '@/lib/structure copy/types';
-import AddSponsorButton from '../Buttons/AddSponsorButton';
 
 type Props = {
+  // tradeData:TradeData,
   activeAccount:any,
   sellAmount: string,
   sellTokenContract: TokenContract, 
@@ -17,13 +21,31 @@ type Props = {
   disabled: boolean
 }
 
-/* Sell Token Selection Module */
-const SellContainer = ({activeAccount, sellAmount, sellTokenContract, setSellAmount, setDisplayState, disabled} : Props) => {
-  try {
-    let IsSpCoin = isSpCoin(sellTokenContract);
-    console.debug("SellContainer.isSpCoin = " + IsSpCoin)
-    const balanceOf = (getERC20WagmiClientBalanceOf(activeAccount.address, sellTokenContract.address || "") || "0");
+const tradeData:TradeData = exchangeContext.tradeData;
 
+    // useEffect(() => {
+    //   // alert(`Price:sellAmount = ${sellAmount`)
+    //   tradeData.sellAmount = sellAmount;
+    //   // alert(`exchangeContext.tradeData.sellAmount:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`);
+    // }, [sellAmount]);
+
+/* Sell Token Selection Module */
+const SellContainer = ({activeAccount,
+                        sellAmount,
+                        sellTokenContract,
+                        setSellAmount,
+                        setDisplayState,
+                        disabled} : Props) => {
+  // console.debug("tradeData.sellBalanceOf = " + tradeData.sellBalanceOf)
+  // tradeData.sellBalanceOf = formatUnits(tradeData.sellBalanceOf, tradeData.sellDecimals);
+  // console.debug(`getFormattedClientBalanceOf(${activeAccount.address}, ${sellTokenContract.address}) = ${balanceOf}`)
+  // const [formattedBalanceOf, setFormattedBalanceOf] = useState<string>(getFormattedClientBalanceOf(activeAccount.address, sellTokenContract.address || "0"));
+
+  try {
+    tradeData.sellDecimals = getERC20WagmiClientDecimals(sellTokenContract.address) || 0;
+    tradeData.sellBalanceOf = getERC20WagmiClientBalanceOf(activeAccount.address, sellTokenContract.address) || 0n;
+    tradeData.sellFormattedBalance = getFormattedClientBalanceOf(activeAccount.address, sellTokenContract.address || "0")
+    let IsSpCoin = isSpCoin(sellTokenContract);
     return (
       <div className={styles.inputs}>
         <input id="sell-amount-id" className={styles.priceInput} placeholder="0" disabled={disabled} value={sellAmount}
@@ -38,20 +60,21 @@ const SellContainer = ({activeAccount, sellAmount, sellTokenContract, setSellAmo
           You Pay
         </div>
         <div className={styles["assetBalance"]}>
-          Balance: {balanceOf}
+          Balance: {tradeData.sellFormattedBalance}
         </div>
         {IsSpCoin ?
           <>
-            <ManageSponsorsButton activeAccount={activeAccount} buyTokenContract={sellTokenContract} setDisplayState={setDisplayState} />
+            <ManageSponsorsButton activeAccount={activeAccount} tokenContract={sellTokenContract} setDisplayState={setDisplayState} />
             {/* <div id="sponsoredBalance" className={styles["sponsoredBalance"]}>
               Sponsored Balance: {"{ToDo}"}
-              {getERC20WagmiClientBalanceOf('0x858BDEe77B06F29A3113755F14Be4B23EE6D6e59', `0xc2132D05D31c914a87C6611C10748AEb04B58e8F` || "")}
+              {getERC20WagmiClientBalanceOfStr('0x858BDEe77B06F29A3113755F14Be4B23EE6D6e59', `0xc2132D05D31c914a87C6611C10748AEb04B58e8F` || "")}
             </div> */}
           </> : null}
       </div>
     );
   } catch (err:any) {
-    console.debug (`Sell Container Error:\n ${err.message}`)
+    console.debug (`Sell Container Error:\n ${err.message}\n${JSON.stringify(tradeData,null,2)}`)
+    // alert(`Sell Container Error:\n ${err.message}\n${JSON.stringify(tradeData,null,2)}`)
   }
 }
 

@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
+
+import { exchangeContext } from "@/lib/context";
+
 import styles from '@/styles/Exchange.module.css';
 import AssetSelect from './AssetSelect';
-import { DISPLAY_STATE, TokenContract } from '@/lib/structure/types';
-import { getERC20WagmiClientBalanceOf } from '@/lib/wagmi/erc20WagmiClientRead';
+import { DISPLAY_STATE, TokenContract, TradeData } from '@/lib/structure/types';
+import { getFormattedClientBalanceOf, getERC20WagmiClientBalanceOfStr, getERC20WagmiClientDecimals, getERC20WagmiClientBalanceOf } from '@/lib/wagmi/erc20WagmiClientRead';
 import AddSponsorButton from '../Buttons/AddSponsorButton';
 import { isSpCoin } from '@/lib/spCoin/utils';
 
@@ -15,27 +18,31 @@ type Props = {
   disabled:boolean
 }
 
-const BuyContainer = ({activeAccount, buyAmount, buyTokenContract, setBuyAmount, setDisplayState, disabled} : Props) => {
+const tradeData:TradeData = exchangeContext.tradeData;
 
+const BuyContainer = ({activeAccount, buyAmount, buyTokenContract, setBuyAmount, setDisplayState, disabled} : Props) => {
   try {
+    tradeData.buyDecimals = getERC20WagmiClientDecimals(buyTokenContract.address) || 0;
+    tradeData.buyBalanceOf = getERC20WagmiClientBalanceOf(activeAccount.address, buyTokenContract.address) || 0n;
+    tradeData.buyFormattedBalance = getFormattedClientBalanceOf(activeAccount.address, buyTokenContract.address || "0")
     let IsSpCoin = isSpCoin(buyTokenContract);
-    console.debug("BuyContainer.isSpCoin = " + IsSpCoin)
-    const balanceOf = (getERC20WagmiClientBalanceOf(activeAccount.address, buyTokenContract.address || "") || "0");
-  
     return (
       <div className={styles.inputs}>
-        <input id="buy-amount-id" className={styles.priceInput} placeholder="0" disabled={disabled} value={parseFloat(buyAmount).toFixed(6)}
-                onChange={(e) => { console.log(`BuyContainer.input:buyAmount =${buyAmount}`) }} />
-        <AssetSelect TokenContract={buyTokenContract} id={"buyTokenDialog"} disabled={disabled}></AssetSelect>
-        <div className={styles["buySell"]}>You receive</div>
-        <div className={styles["assetBalance"]}>Balance: {balanceOf}</div>
-        {IsSpCoin ?
-          <AddSponsorButton activeAccount={activeAccount} buyTokenContract={buyTokenContract} setDisplayState={setDisplayState} />
-          : null}
+      <input id="buy-amount-id" className={styles.priceInput} placeholder="0" disabled={disabled} value={parseFloat(buyAmount).toFixed(6)}
+              onChange={(e) => { console.debug(`BuyContainer.input:buyAmount =${buyAmount}`) }} />
+      <AssetSelect TokenContract={buyTokenContract} id={"buyTokenDialog"} disabled={disabled}></AssetSelect>
+      <div className={styles["buySell"]}>You receive</div>
+      <div className={styles["assetBalance"]}>
+        Balance: {tradeData.buyFormattedBalance}
+      </div>
+      {IsSpCoin ?
+        <AddSponsorButton activeAccount={activeAccount} buyTokenContract={buyTokenContract} setDisplayState={setDisplayState} />
+        : null}
       </div>
     );
   } catch (err:any) {
-    console.debug (`Buy Container Error:\n ${err.message}`)
+    console.log(`Buy Container Error:\n ${err.message}\n${JSON.stringify(tradeData,null,2)}`)
+    // alert(`Buy Container Error:\n ${err.message}\n${JSON.stringify(tradeData,null,2)}`)
   }
 }
 

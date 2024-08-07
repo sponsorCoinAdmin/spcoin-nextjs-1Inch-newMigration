@@ -1,48 +1,43 @@
 'use client'
 
-import { useChainId, useReadContract, useSwitchChain  } from 'wagmi'
+import { useChainId, useReadContract } from 'wagmi'
 import { config } from '@/lib/wagmi/wagmiConfig'
 import { Address, formatUnits, getAddress } from 'viem'
 import { erc20Abi } from 'viem'
 import { TokenContract, ContractRecs } from '../structure/types'
+import { BURN_ADDRESS } from '@/lib/network/utils';
 
 const getERC20WagmiClientBalanceOfRec = (connectedWalletAddr: Address | string | undefined, contractAddress: Address | string | undefined) => {
-  console.debug(`getERC20WagmiClientBalanceOfRec:connectedWalletAddr = ${connectedWalletAddr}, contractAddress = ${contractAddress}`)
-  const chainId = useChainId();
-  // const chainId = useChainId();
-  console.debug(`getERC20WagmiClientBalanceOfRec:useChainId() = ${JSON.stringify(chainId, null, 2)}`);
-  // switchChain({chainId: chainId})
+  // console.debug(`getERC20WagmiClientBalanceOfRec:connectedWalletAddr = ${connectedWalletAddr}, contractAddress = ${contractAddress}`)
   let wagmiBalanceOfRec;
-  if (contractAddress !== undefined && connectedWalletAddr !== undefined) {
-    wagmiBalanceOfRec = useReadContract({
-      abi: erc20Abi,
-      address: getAddress(contractAddress),
-      functionName: 'balanceOf',
-      args: [getAddress(connectedWalletAddr)],
-      config, 
-    })
-  }
+  wagmiBalanceOfRec = useReadContract({
+    abi: erc20Abi,
+    address: getAddress(contractAddress || BURN_ADDRESS),
+    functionName: 'balanceOf',
+    args: [getAddress(connectedWalletAddr || BURN_ADDRESS)],
+    config, 
+  })
   // console.debug(`getERC20WagmiClientBalanceOfRec.wagmiBalanceOfRec = ${JSON.stringify(wagmiBalanceOfRec, (_, v) => typeof v === 'bigint' ? v.toString() : v,2)}`)
   return wagmiBalanceOfRec;
 }
 
 const getERC20WagmiClientDecimalRec = (contractAddress:Address | string | undefined) => {
+  // alert(`getERC20WagmiClientDecimalRec:contractAddress = ${contractAddress}`)
   let wagmiDecimalsRec
-  if (contractAddress !== undefined) {
-    wagmiDecimalsRec = useReadContract({
-      abi: erc20Abi,
-      address: getAddress(contractAddress),
-      functionName: 'decimals',
-      config, 
-    })
-  }
+  wagmiDecimalsRec = useReadContract({
+    abi: erc20Abi,
+    address: getAddress(contractAddress || BURN_ADDRESS),
+    functionName: 'decimals',
+    config, 
+  })
+  // alert(`getERC20WagmiClientDecimalRec:wagmiDecimalsRec = ${JSON.stringify(wagmiDecimalsRec, null, 2)}`)
   return wagmiDecimalsRec;
 }
 
 const getERC20WagmiClientNameRec = (contractAddress:Address | undefined) => {
   let wagmiNameRec = useReadContract({
     abi: erc20Abi,
-    address: contractAddress,
+    address: contractAddress || BURN_ADDRESS,
     functionName: 'name',
     config, 
   })
@@ -52,7 +47,7 @@ const getERC20WagmiClientNameRec = (contractAddress:Address | undefined) => {
 const getERC20WagmiClientSymbolRec = (contractAddress:Address | undefined) => {
   let wagmiSymbolRec = useReadContract({
     abi: erc20Abi,
-    address: contractAddress,
+    address: contractAddress || BURN_ADDRESS,
     functionName: 'symbol',
     config, 
   })
@@ -62,7 +57,7 @@ const getERC20WagmiClientSymbolRec = (contractAddress:Address | undefined) => {
 const getERC20WagmiClientTotalSupplyRec = (contractAddress:Address | undefined) => {
   let wagmiTotalSupplyRec = useReadContract({
     abi: erc20Abi,
-    address: contractAddress,
+    address: contractAddress || BURN_ADDRESS,
     functionName: 'totalSupply',
     config, 
   })
@@ -97,21 +92,25 @@ const getERC20WagmiClientTotalSupply = (contractAddress:Address | undefined) => 
   return getERC20WagmiClientTotalSupplyRec(contractAddress).data;
 }
 
-const getERC20WagmiClientBalanceOf = (connectedWalletAddr: Address | string, contractAddress: Address | string ) => {
-  let eRC20WagmiClientBalanceOf:any = "0";
+const getERC20WagmiClientBalanceOf = (connectedWalletAddr: Address | string | undefined, contractAddress: Address | string | undefined) => {
+  let eRC20WagmiClientBalanceOf:bigint | undefined = BigInt(0);
   try {
-
-    if (connectedWalletAddr) {
-      console.debug(`Executing:eRC20WagmiClientBalanceOf(${connectedWalletAddr} , ${contractAddress})`);
-      eRC20WagmiClientBalanceOf = getERC20WagmiClientBalanceOfRec(connectedWalletAddr , contractAddress )?.data?.toString();
-      console.debug(`getERC20WagmiClientBalanceOf:Executing:BalanceOf = ${eRC20WagmiClientBalanceOf}`);
+    if (connectedWalletAddr && contractAddress) {
+      // console.debug(`EXECUTING:eRC20WagmiClientBalanceOf(${connectedWalletAddr} , ${contractAddress})`);
+      eRC20WagmiClientBalanceOf = getERC20WagmiClientBalanceOfRec(connectedWalletAddr , contractAddress )?.data;
+      // console.debug(`EXECUTED 2:eRC20WagmiClientBalanceOf(${connectedWalletAddr} , ${contractAddress}) = ${eRC20WagmiClientBalanceOf}`);
     }
   }
   catch (err:any) {
-    console.debug(`Error: eRC20WagmiClientBalanceOf:err.msg = ${err.msg}`);
-    console.debug(`Error: eRC20WagmiClientBalanceOf = ${eRC20WagmiClientBalanceOf}`);
+    console.error(`ERROR:eRC20WagmiClientBalanceOf(${connectedWalletAddr} , ${contractAddress}) = ${eRC20WagmiClientBalanceOf}`);
+    console.error(`ERROR:eRC20WagmiClientBalanceOf:err.msg = ${err.msg}`);
   }
   return eRC20WagmiClientBalanceOf;
+}
+
+const getERC20WagmiClientBalanceOfStr = (connectedWalletAddr: Address | string | undefined, contractAddress: Address | string | undefined) => {
+  const bigIntBalanceOf:bigint | undefined = getERC20WagmiClientBalanceOf(connectedWalletAddr, contractAddress);
+  return bigIntBalanceOf ? bigIntBalanceOf.toString() : "0";
 }
 
 const getErc20ClientContract = (contractAddress:Address | undefined) => {
@@ -139,10 +138,40 @@ const getFormattedClientTotalSupply = (contractAddress:Address | undefined) => {
   return formatDecimals(totalSupply, decimals);
 }
 
-const getFormattedClientBalanceOf = (connectedWalletAddr: Address | string , contractAddress: Address | string ) => {
-  let balanceOf = getERC20WagmiClientBalanceOf(connectedWalletAddr, contractAddress)
+// const getFormattedClientBalanceOf = (connectedWalletAddr: Address | string | undefined, contractAddress: Address | string | undefined ) => {
+
+//   const [formattedDecimals, setFormattedDecimals] = useState<string>("0");
+
+//   // if (connectedWalletAddr && contractAddress) {
+//     const balanceOf = getERC20WagmiClientBalanceOfStr(connectedWalletAddr, contractAddress)
+//     const decimals  = getERC20WagmiClientDecimals(contractAddress)
+//   // }
+
+//   useEffect(() => {
+//     if(balanceOf && decimals) {
+//       // alert(` setFormattedDecimals(formatDecimals(${balanceOf}, ${decimals}));`)
+//       setFormattedDecimals(formatDecimals(balanceOf, decimals));
+//     }
+//   }, [balanceOf, decimals])
+
+//   return formattedDecimals;
+// }
+
+const getFormattedClientBalanceOf = (connectedWalletAddr: Address | string | undefined, contractAddress: Address | string | undefined ) => {
+  // alert(`getFormattedClientBalanceOf(${connectedWalletAddr}, ${contractAddress} )`)
+  // const [formattedBalanceOf , setFormattedBalanceOf ] = useState<string>("0");
+  let formattedBalanceOf = "0";
+  const balanceOf = getERC20WagmiClientBalanceOfStr(connectedWalletAddr, contractAddress)
   let decimals  = getERC20WagmiClientDecimals(contractAddress)
- return formatDecimals(balanceOf, decimals);
+  
+  // useEffect(() => {
+    if(balanceOf && decimals) {
+      // setFormattedBalanceOf(formatDecimals(balanceOf, decimals));
+      formattedBalanceOf = formatDecimals(balanceOf, decimals);
+    }
+  // }, [balanceOf, decimals])
+
+  return formattedBalanceOf;
 }
 
 export {
@@ -154,7 +183,8 @@ export {
   getERC20WagmiClientSymbolRec, 
   getERC20WagmiClientTotalSupplyRec,
   getERC20WagmiClientRecords,
-  getERC20WagmiClientBalanceOf, 
+  getERC20WagmiClientBalanceOfStr,
+  getERC20WagmiClientBalanceOf,
   getERC20WagmiClientDecimals,
   getERC20WagmiClientName, 
   getERC20WagmiClientSymbol, 

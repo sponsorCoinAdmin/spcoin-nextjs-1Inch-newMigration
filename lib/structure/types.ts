@@ -7,9 +7,7 @@ enum  EXCHANGE_STATE { NOT_CONNECTED,
                        PENDING,
                        SWAP }
 
-enum  DISPLAY_STATE {
-  OFF, SPONSOR_SELL_ON, SPONSOR_SELL_OFF, SPONSOR_BUY, RECIPIENT, CONFIG
-}
+enum  DISPLAY_STATE { OFF, SPONSOR_SELL_ON, SPONSOR_SELL_OFF, SPONSOR_BUY, RECIPIENT, CONFIG }
 
 enum  FEED_TYPE { TOKEN_LIST, AGENT_WALLETS, RECIPIENT_WALLETS }
 
@@ -31,28 +29,6 @@ type TokenContract = {
   img: string | undefined;
 }
 
-/*
-type TokenContract = {
-  chainId : number | undefined,
-  address : Address | undefined,
-  name :string | undefined,
-  symbol :string | undefined,
-  decimals : any,
-  totalSupply : any
-  img: string | undefined;
-}
-
-type TokenContract = {
-  chainId: number;
-  address: Address|string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  img: string;
-}
-
-*/
-
 type ContractRecs = {
     nameRec:any,
     symbolRec:any,
@@ -73,9 +49,13 @@ type TradeData = {
   chainId: number;
   networkName: string;
   sellAmount:string;
-  sellBalanceOf:string;
+  sellDecimals:number;
+  sellBalanceOf:bigint;
+  sellFormattedBalance:string;
   buyAmount:string;
-  buyBalanceOf:string;
+  buyDecimals:number;
+  buyBalanceOf:bigint;
+  buyFormattedBalance:string;
   tradeDirection:string
   displayState: DISPLAY_STATE;
   slippage: string;

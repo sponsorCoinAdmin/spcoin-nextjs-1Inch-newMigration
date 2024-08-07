@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { getDefaultNetworkSettings } from '@/lib/network/initialize/defaultNetworkSettings';
 import { DISPLAY_STATE, EXCHANGE_STATE, ExchangeContext, TradeData } from '@/lib/structure/types';
 import { TokenContract } from "@/lib/structure/types";
-import { config } from '@/lib/wagmi/wagmiConfig'
 import { useAccount, useChainId } from 'wagmi';
 // import { isSpCoin } from '@/lib/spCoin/utils';
 
@@ -37,12 +36,16 @@ function getInitialDataSettings(network: string | number, ifSpCoin:boolean): Tra
         chainId: 1,
         networkName: "ethereum",
         sellAmount: "0",
-        sellBalanceOf: "0",
+        sellDecimals: 0,
+        sellBalanceOf: 0n,
+        sellFormattedBalance: '0',
         buyAmount: "0",
-        buyBalanceOf: "0",
+        buyDecimals: 0,
+        buyBalanceOf: 0n,
+        buyFormattedBalance: '0',
         tradeDirection: "sell",
         displayState: ifSpCoin ? DISPLAY_STATE.SPONSOR_SELL_ON : DISPLAY_STATE.OFF,
-        slippage: "0.02"
+        slippage: "0.02",
     }
     return tradeData;
 }

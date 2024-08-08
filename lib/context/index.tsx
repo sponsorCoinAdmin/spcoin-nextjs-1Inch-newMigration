@@ -15,36 +15,37 @@ const isSpCoin = (TokenContract:TokenContract) => {
   }  
 
 const getInitialContext = (chain:any) => {
-    const networkName = ( chain && chain.name) ?  chain.name.toLowerCase() : 1;
-    const defaultNetworkSettings = getDefaultNetworkSettings(networkName)
-    const defaultBuyToken = defaultNetworkSettings.defaultBuyToken
-    let tradeData =  getInitialDataSettings(networkName, isSpCoin(defaultBuyToken));
+    let tradeData =  getInitialDataSettings(chain);
     let initialContext:ExchangeContext = {
         tradeData: tradeData,
-        network: defaultNetworkSettings.networkHeader,
-        sellTokenContract: defaultNetworkSettings.defaultSellToken,
-        buyTokenContract: defaultNetworkSettings.defaultBuyToken,
-        recipientWallet: defaultNetworkSettings.defaultRecipient,
-        agentWallet: defaultNetworkSettings.defaultAgent
     }
     return initialContext;
 }
 
-function getInitialDataSettings(network: string | number, ifSpCoin:boolean): TradeData {
+function getInitialDataSettings(chain:any | number): TradeData {
+    const chainId:number = chain || 1;
+    const defaultNetworkSettings = getDefaultNetworkSettings(chainId)
+    const ifBuyTokenSpCoin = isSpCoin(defaultNetworkSettings.defaultBuyToken)
+
     let tradeData:TradeData = {
+
+        network: defaultNetworkSettings.networkHeader,
+
+        recipientWallet: defaultNetworkSettings.defaultRecipient,
+        agentWallet: defaultNetworkSettings.defaultAgent,
+
+        sellTokenContract: defaultNetworkSettings.defaultSellToken,
+        buyTokenContract: defaultNetworkSettings.defaultBuyToken,
+
         connectedWalletAddr: undefined,
-        chainId: 1,
-        networkName: "ethereum",
         sellAmount: "0",
-        sellDecimals: 0,
         sellBalanceOf: 0n,
         sellFormattedBalance: '0',
         buyAmount: "0",
-        buyDecimals: 0,
         buyBalanceOf: 0n,
         buyFormattedBalance: '0',
         tradeDirection: "sell",
-        displayState: ifSpCoin ? DISPLAY_STATE.SPONSOR_SELL_ON : DISPLAY_STATE.OFF,
+        displayState: ifBuyTokenSpCoin ? DISPLAY_STATE.SPONSOR_SELL_ON : DISPLAY_STATE.OFF,
         slippage: "0.02",
     }
     return tradeData;
@@ -53,19 +54,19 @@ function getInitialDataSettings(network: string | number, ifSpCoin:boolean): Tra
 const resetContextNetwork = (chain:any) => {
     const networkName = chain.name.toLowerCase();
     console.debug("resetContextNetwork: newNetworkName = " + networkName);
-    console.debug("resetContextNetwork: exchangeContext.networkName = " + exchangeContext.tradeData.networkName);
+    console.debug("resetContextNetwork: exchangeContext.tradeData.network.name = " + exchangeContext.tradeData.network.name);
     console.debug(`UPDATING NETWORK to ${networkName}`);
 
     const defaultNetworkSettings = getDefaultNetworkSettings(networkName)
     console.debug(`Loaded defaultNetworkSettings for ${networkName}: ${JSON.stringify(defaultNetworkSettings,null,2)}`);
-    exchangeContext.tradeData.chainId = chain.id;
-    exchangeContext.tradeData.networkName = networkName
+    exchangeContext.tradeData.network.chainId = chain.id;
+    exchangeContext.tradeData.network.name = networkName
     exchangeContext.tradeData.displayState = isSpCoin(defaultNetworkSettings.defaultBuyToken) ? DISPLAY_STATE.SPONSOR_SELL_ON:DISPLAY_STATE.OFF,
     exchangeContext.tradeData.slippage = "0.02",
-    exchangeContext.sellTokenContract = defaultNetworkSettings.defaultSellToken,
-    exchangeContext.buyTokenContract = defaultNetworkSettings.defaultBuyToken,
-    exchangeContext.recipientWallet = defaultNetworkSettings.defaultRecipient,
-    exchangeContext.agentWallet = defaultNetworkSettings.defaultAgent
+    exchangeContext.tradeData.sellTokenContract = defaultNetworkSettings.defaultSellToken,
+    exchangeContext.tradeData.buyTokenContract = defaultNetworkSettings.defaultBuyToken,
+    exchangeContext.tradeData.recipientWallet = defaultNetworkSettings.defaultRecipient,
+    exchangeContext.tradeData.agentWallet = defaultNetworkSettings.defaultAgent
 }
 
 export function ExchangeWrapper({children} : {

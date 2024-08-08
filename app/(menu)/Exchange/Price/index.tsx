@@ -15,7 +15,7 @@ import { useReadContracts, useAccount } from 'wagmi'
 import { erc20Abi } from 'viem' 
 import { WalletElement, TokenContract, TradeData, EXCHANGE_STATE, ExchangeContext, DISPLAY_STATE,  } from '@/lib/structure/types';
 import { ERROR_0X_RESPONSE, fetcher, processError } from '@/lib/0X/fetcher';
-import { isSpCoin, setValidPriceInput, updateBalance } from '@/lib/spCoin/utils';
+import { isSpCoin, setValidPriceInput, stringifyBigInt, updateBalance } from '@/lib/spCoin/utils';
 import type { PriceResponse } from "@/app/api/types";
 import {setDisplayPanels,} from '@/lib/spCoin/guiControl';
 import TradeContainerHeader from '@/components/Popover/TradeContainerHeader';
@@ -43,10 +43,10 @@ export default function PriceView() {
     const [tradeDirection, setTradeDirection] = useState(exchangeContext.tradeData.tradeDirection);
     const [slippage, setSlippage] = useState<string>(exchangeContext.tradeData.slippage);
     const [displayState, setDisplayState] = useState<DISPLAY_STATE>(exchangeContext.tradeData.displayState);
-    const [sellTokenContract, setSellTokenContract] = useState<TokenContract>(exchangeContext.sellTokenContract);
-    const [buyTokenContract, setBuyTokenContract] = useState<TokenContract>(exchangeContext.buyTokenContract);
-    const [recipientWallet, setRecipientElement] = useState<WalletElement>(exchangeContext.recipientWallet);
-    const [agentWallet, setAgentElement] = useState(exchangeContext.agentWallet);
+    const [sellTokenContract, setSellTokenContract] = useState<TokenContract>(exchangeContext.tradeData.sellTokenContract);
+    const [buyTokenContract, setBuyTokenContract] = useState<TokenContract>(exchangeContext.tradeData.buyTokenContract);
+    const [recipientWallet, setRecipientElement] = useState<WalletElement>(exchangeContext.tradeData.recipientWallet);
+    const [agentWallet, setAgentElement] = useState(exchangeContext.tradeData.agentWallet);
     const [errorMessage, setErrorMessage] = useState<Error>({ name: "", message: "" });
     const ACTIVE_ACCOUNT = useAccount()
 
@@ -54,28 +54,27 @@ export default function PriceView() {
     const connectedWalletAddr = tradeData.connectedWalletAddr
 
     // useEffect(() => {
-    //   tradeData.sellBalanceOf = formatUnits(tradeData.sellBalanceOf, tradeData.sellDecimals);
+    //   tradeData.sellBalanceOf = formatUnits(tradeData.sellBalanceOf, tradeData.sellTokenContract.decimals);
     //   setSellBalanceOf(tradeData.sellBalanceOf);
-    //   // alert(`formatUnits(${tradeData.sellBalanceOf}, ${tradeData.sellDecimals}) = ${tradeData.sellBalanceOf}`)
+    //   // alert(`formatUnits(${tradeData.sellBalanceOf}, ${tradeData.sellTokenContract.decimals}) = ${tradeData.sellBalanceOf}`)
     // }, [tradeData.sellBalanceOf]);
-
 
     useEffect(() => {
       const chain = ACTIVE_ACCOUNT.chain;
-      if (chain != undefined && exchangeContext.tradeData.chainId !== chain.id) {
+      if (chain != undefined && exchangeContext.tradeData.network.chainId !== chain.id) {
         resetContextNetwork(chain)
-        console.debug(`exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`)
-        setSellTokenContract(exchangeContext.sellTokenContract);
-        setBuyTokenContract(exchangeContext.buyTokenContract);
-        setRecipientElement(exchangeContext.recipientWallet);
-        setAgentElement(exchangeContext.agentWallet);
+        console.debug(`exchangeContext = ${stringifyBigInt(exchangeContext)}`)
+        setSellTokenContract(exchangeContext.tradeData.sellTokenContract);
+        setBuyTokenContract(exchangeContext.tradeData.buyTokenContract);
+        setRecipientElement(exchangeContext.tradeData.recipientWallet);
+        setAgentElement(exchangeContext.tradeData.agentWallet);
         setDisplayState(exchangeContext.tradeData.displayState);
         setSlippage(exchangeContext.tradeData.slippage);
       }
       // alert(`Price:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}\n `);
     }, [ACTIVE_ACCOUNT.chain]);
 
-// tradeData.sellDecimals = sellDecimals
+// tradeData.sellTokenContract.decimals = sellDecimals
 
   // useEffect(() => {
   //   alert(`SellContainer:tradeData = ${JSON.stringify(tradeData, null, 2)}`)
@@ -106,7 +105,7 @@ export default function PriceView() {
 
     useEffect(() => {
       console.debug("PRICE:useEffect:sellTokenContract.symbol changed to " + sellTokenContract.name);
-      exchangeContext.sellTokenContract = sellTokenContract;
+      exchangeContext.tradeData.sellTokenContract = sellTokenContract;
     }, [sellTokenContract]);
 
     useEffect(() => {
@@ -114,12 +113,12 @@ export default function PriceView() {
         setDisplayState(DISPLAY_STATE.SPONSOR_BUY) 
       else if (!isSpCoin(buyTokenContract)) 
         setDisplayState(DISPLAY_STATE.OFF)
-      exchangeContext.buyTokenContract = buyTokenContract;
+      exchangeContext.tradeData.buyTokenContract = buyTokenContract;
     }, [buyTokenContract]);
 
     useEffect(() => {
       console.debug("PRICE:useEffect:recipientWallet changed to " + recipientWallet.name);
-      exchangeContext.recipientWallet = recipientWallet;
+      exchangeContext.tradeData.recipientWallet = recipientWallet;
     }, [recipientWallet]);
 
     useEffect(() => {
@@ -137,8 +136,6 @@ export default function PriceView() {
       ? parseUnits(buyAmount, buyTokenContract.decimals).toString()
       : undefined;
 
-    // console.debug(`Initializing Fetcher with "/api/" + ${tradeData.networkName} + "/0X/price"`)
-
     const getPriceApiTransaction = (data:any) => {
       let priceTransaction = `${apiCall}`
       priceTransaction += `?sellToken=${sellTokenContract.address}`
@@ -150,7 +147,7 @@ export default function PriceView() {
       return priceTransaction;
     }
 
-    const apiCall = "http://localhost:3000/api/" + tradeData.networkName + "/0X/price";
+    const apiCall = "http://localhost:3000/api/" + tradeData.network.name.toLowerCase() + "/0X/price";
 
     const { isLoading: isLoadingPrice } = useSWR(
       [

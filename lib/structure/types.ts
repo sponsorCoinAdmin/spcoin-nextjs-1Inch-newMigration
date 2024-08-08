@@ -8,7 +8,6 @@ enum  EXCHANGE_STATE { NOT_CONNECTED,
                        SWAP }
 
 enum  DISPLAY_STATE { OFF, SPONSOR_SELL_ON, SPONSOR_SELL_OFF, SPONSOR_BUY, RECIPIENT, CONFIG }
-
 enum  FEED_TYPE { TOKEN_LIST, AGENT_WALLETS, RECIPIENT_WALLETS }
 
 interface PriceRequestParams {
@@ -17,16 +16,6 @@ interface PriceRequestParams {
   buyAmount?: string;
   sellAmount?: string;
   connectedWalletAddr?: string;
-}
-
-type TokenContract = {
-  chainId : number | undefined,
-  address : any,
-  name :string | undefined,
-  symbol :string | undefined,
-  decimals : any,
-  totalSupply : any,
-  img: string | undefined;
 }
 
 type ContractRecs = {
@@ -44,16 +33,39 @@ type WalletElement = {
   url: string;
 }
 
-type TradeData = {
-  connectedWalletAddr:any,
+type TokenContract = {
+  chainId : number | undefined,
+  address : any,
+  name :string | undefined,
+  symbol :string | undefined,
+  decimals : number,
+  totalSupply : any,
+  img: string | undefined;
+}
+
+type NetworkElement = {
   chainId: number;
-  networkName: string;
+  name: string;
+  symbol: string;
+  img: string;
+  url: string;
+}
+
+type TradeData = {
+
+  network: NetworkElement;
+
+  recipientWallet: WalletElement;
+  agentWallet: WalletElement;
+
+  sellTokenContract: TokenContract;
+  buyTokenContract: TokenContract;
+
+  connectedWalletAddr:any,
   sellAmount:string;
-  sellDecimals:number;
   sellBalanceOf:bigint;
   sellFormattedBalance:string;
   buyAmount:string;
-  buyDecimals:number;
   buyBalanceOf:bigint;
   buyFormattedBalance:string;
   tradeDirection:string
@@ -63,19 +75,6 @@ type TradeData = {
 
 type ExchangeContext = {
   tradeData: TradeData;
-  network: NetworkElement;
-  sellTokenContract: TokenContract;
-  buyTokenContract: TokenContract;
-  recipientWallet: WalletElement;
-  agentWallet: WalletElement;
-}
-
-type NetworkElement = {
-  chainId: number;
-  name: string;
-  symbol: string;
-  img: string;
-  url: string;
 }
 
 export {

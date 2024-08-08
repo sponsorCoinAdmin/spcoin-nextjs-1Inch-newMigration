@@ -31,7 +31,6 @@ import { exchangeContext } from "@/lib/context";
 import QuoteButton from '@/components/Buttons/QuoteButton';
 import { Address, parseEther } from 'viem';
 
-
 /*
 import {
   useAccount,
@@ -79,23 +78,22 @@ export default function QuoteView({
   // alert("EXCHANGE/QUOTE HERE 1")
   console.debug("########################### QUOTE RERENDERED #####################################")
 
-  // console.debug("chainId = "+chainId +"\nnetworkName = " + networkName)
   // fetch price here
-  const [chainId, setChainId] = useState(exchangeContext.tradeData.chainId);
-  const [network, setNetwork] = useState(exchangeContext.tradeData.networkName);
+  const [chainId, setChainId] = useState(exchangeContext.tradeData.network.chainId);
+  const [network, setNetwork] = useState(exchangeContext.tradeData.network.name);
   const [sellAmount, setSellAmount] = useState<string>(exchangeContext.tradeData.sellAmount);
   const [buyAmount, setBuyAmount] = useState<string>(exchangeContext.tradeData.buyAmount);
   const [sellBalance, setSellBalance] = useState<string>("0");
   const [buyBalance, setBuyBalance] = useState<string>("0");
   const [tradeDirection, setTradeDirection] = useState(exchangeContext.tradeData.tradeDirection);
-  const [state, setState] = useState<EXCHANGE_STATE>(exchangeContext.tradeData.state);
+  // const [state, setState] = useState<EXCHANGE_STATE>(exchangeContext.tradeData.state);
   const [slippage, setSlippage] = useState<string>(exchangeContext.tradeData.slippage);
   const [displayState, setDisplayState] = useState<DISPLAY_STATE>(exchangeContext.tradeData.displayState);
 
-  const [sellTokenContract, setSellTokenContract] = useState<TokenContract>(exchangeContext.sellTokenContract);
-  const [buyTokenContract, setBuyTokenContract] = useState<TokenContract>(exchangeContext.buyTokenContract);
-  const [recipientWallet, setRecipientElement] = useState<WalletElement>(exchangeContext.recipientWallet);
-  const [agentWallet, setAgentElement] = useState<WalletElement>(exchangeContext.agentWallet);
+  const [sellTokenContract, setSellTokenContract] = useState<TokenContract>(exchangeContext.tradeData.sellTokenContract);
+  const [buyTokenContract, setBuyTokenContract] = useState<TokenContract>(exchangeContext.tradeData.buyTokenContract);
+  const [recipientWallet, setRecipientElement] = useState<WalletElement>(exchangeContext.tradeData.recipientWallet);
+  const [agentWallet, setAgentElement] = useState<WalletElement>(exchangeContext.tradeData.agentWallet);
   const [errorMessage, setErrorMessage] = useState<Error>({ name: "", message: "" });
 
   useEffect(() => {
@@ -109,7 +107,7 @@ export default function QuoteView({
   
   useEffect(() => {
     console.debug(`QUOTE: useEffect:chainId = ${chainId}`)
-    exchangeContext.tradeData.chainId = chainId;
+    exchangeContext.tradeData.network.chainId = chainId;
   },[chainId]);
 
   useEffect(() => {
@@ -123,10 +121,10 @@ export default function QuoteView({
     exchangeContext.tradeData.slippage = slippage;
   }, [slippage]);
 
-  useEffect(() => {
-    console.debug('QUOTE: state changed to  ' + state.toString);
-    exchangeContext.tradeData.state = state;
-  }, [state]);
+  // useEffect(() => {
+  //   console.debug('QUOTE: state changed to  ' + state.toString);
+  //   exchangeContext.tradeData.state = state;
+  // }, [state]);
 
   useEffect(() => {
     // console.debug(`useEffect[connectedWalletAddr]:EXECUTING updateBuyBalance(${buyTokenContract.name});`)
@@ -134,7 +132,7 @@ export default function QuoteView({
 
   useEffect(() => {
     console.debug("sellTokenContract.symbol changed to " + sellTokenContract.name);
-    exchangeContext.sellTokenContract = sellTokenContract;
+    exchangeContext.tradeData.sellTokenContract = sellTokenContract;
   }, [sellTokenContract]);
 
   useEffect(() => {
@@ -143,12 +141,12 @@ export default function QuoteView({
       setDisplayState(DISPLAY_STATE.SPONSOR_BUY) 
     else if (!isSpCoin(buyTokenContract)) 
       setDisplayState(DISPLAY_STATE.OFF)
-    exchangeContext.buyTokenContract = buyTokenContract;
+    exchangeContext.tradeData.buyTokenContract = buyTokenContract;
   }, [buyTokenContract]);
 
   useEffect(() => {
     console.debug("recipientWallet changed to " + recipientWallet.name);
-    exchangeContext.recipientWallet = recipientWallet;
+    exchangeContext.tradeData.recipientWallet = recipientWallet;
   }, [recipientWallet]);
 
   useEffect(() => {
@@ -251,8 +249,20 @@ export default function QuoteView({
       <ErrorDialog errMsg={errorMessage} />
       <div className={styles.tradeContainer}>
         <TradeContainerHeader slippage={slippage} setSlippageCallback={setSlippage}/>
-        <SellContainer sellAmount={formatUnits(quote.sellAmount, sellTokenContract.decimals)} sellBalance={"ToDo: sellBalance"} sellTokenContract={sellTokenContract} setSellAmount={undefined} disabled={true}/>
-        <BuyContainer buyAmount={formatUnits(quote.buyAmount, buyTokenContract.decimals)} buyBalance={"ToDo: sellBalance"} buyTokenContract={buyTokenContract} setBuyAmount={undefined} disabled={true} setDisplayState={setDisplayState}/>          
+        {/* <SellContainer sellAmount={formatUnits(quote.sellAmount, sellTokenContract.decimals)} sellBalance={"ToDo: sellBalance"} sellTokenContract={sellTokenContract} setSellAmount={undefined} disabled={true}/>
+        <BuyContainer buyAmount={formatUnits(quote.buyAmount, buyTokenContract.decimals)} buyBalance={"ToDo: sellBalance"} buyTokenContract={buyTokenContract} setBuyAmount={undefined} disabled={true} setDisplayState={setDisplayState}/>           */}
+            {/* <SellContainer activeAccount={ACTIVE_ACCOUNT}
+                           sellAmount={sellAmount}
+                           sellTokenContract={sellTokenContract}
+                           setSellAmount={setSellAmount}
+                           disabled={false}
+                           setDisplayState={setDisplayState}/>
+            <BuyContainer  activeAccount={ACTIVE_ACCOUNT}
+                           buyAmount={buyAmount}
+                           buyTokenContract={buyTokenContract}
+                           setBuyAmount={setBuyAmount}
+                           disabled={false}
+                           setDisplayState={setDisplayState} />           */}
         {/* <BuySellSwapButton  sellTokenContract={sellTokenContract} buyTokenContract={buyTokenContract} setSellTokenContract={setSellTokenContract} setBuyTokenContract={setBuyTokenContract} /> */}
         {/* <PriceButton connectedWalletAddr={connectedWalletAddr} sellTokenContract={sellTokenContract} buyTokenContract={buyTokenContract} sellBalance={sellBalance} disabled={disabled} slippage={slippage} /> */}
         <button

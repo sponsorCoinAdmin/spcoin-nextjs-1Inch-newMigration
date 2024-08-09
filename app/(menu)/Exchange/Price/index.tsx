@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { formatUnits, parseUnits } from "ethers";
 import { useReadContracts, useAccount } from 'wagmi' 
 import { erc20Abi } from 'viem' 
-import { WalletElement, TokenContract, TradeData, EXCHANGE_STATE, ExchangeContext, DISPLAY_STATE,  } from '@/lib/structure/types';
+import { AccountRecord, TokenContract,  DISPLAY_STATE,  } from '@/lib/structure/types';
 import { ERROR_0X_RESPONSE, fetcher, processError } from '@/lib/0X/fetcher';
 import { isSpCoin, setValidPriceInput, stringifyBigInt, updateBalance } from '@/lib/spCoin/utils';
 import type { PriceResponse } from "@/app/api/types";
@@ -37,75 +37,71 @@ export default function PriceView() {
 
   try {
     const [price, setPrice] = useState<PriceResponse | undefined>();
-    const tradeData:TradeData = exchangeContext.tradeData;
-    const [sellAmount, setSellAmount] = useState<string>(exchangeContext.tradeData.sellAmount);
-    const [buyAmount, setBuyAmount] = useState<string>(exchangeContext.tradeData.buyAmount);
-    const [tradeDirection, setTradeDirection] = useState(exchangeContext.tradeData.tradeDirection);
-    const [slippage, setSlippage] = useState<string>(exchangeContext.tradeData.slippage);
-    const [displayState, setDisplayState] = useState<DISPLAY_STATE>(exchangeContext.tradeData.displayState);
-    const [sellTokenContract, setSellTokenContract] = useState<TokenContract>(exchangeContext.tradeData.sellTokenContract);
-    const [buyTokenContract, setBuyTokenContract] = useState<TokenContract>(exchangeContext.tradeData.buyTokenContract);
-    const [recipientWallet, setRecipientElement] = useState<WalletElement>(exchangeContext.tradeData.recipientWallet);
-    const [agentWallet, setAgentElement] = useState(exchangeContext.tradeData.agentWallet);
+    const [sellAmount, setSellAmount] = useState<string>(exchangeContext.sellAmount);
+    const [buyAmount, setBuyAmount] = useState<string>(exchangeContext.buyAmount);
+    const [tradeDirection, setTradeDirection] = useState(exchangeContext.tradeDirection);
+    const [slippage, setSlippage] = useState<string>(exchangeContext.slippage);
+    const [displayState, setDisplayState] = useState<DISPLAY_STATE>(exchangeContext.displayState);
+    const [sellTokenContract, setSellTokenContract] = useState<TokenContract>(exchangeContext.sellTokenContract);
+    const [buyTokenContract, setBuyTokenContract] = useState<TokenContract>(exchangeContext.buyTokenContract);
+    const [recipientAccount, setRecipientElement] = useState<AccountRecord>(exchangeContext.recipientAccount);
+    const [agentAccount, setAgentElement] = useState(exchangeContext.agentAccount);
     const [errorMessage, setErrorMessage] = useState<Error>({ name: "", message: "" });
     const ACTIVE_ACCOUNT = useAccount()
 
-    tradeData.connectedWalletAddr = ACTIVE_ACCOUNT.address || BURN_ADDRESS;
-    const connectedWalletAddr = tradeData.connectedWalletAddr
+    exchangeContext.connectedWalletAddr = ACTIVE_ACCOUNT.address || BURN_ADDRESS;
+    const connectedWalletAddr = exchangeContext.connectedWalletAddr
 
     // useEffect(() => {
-    //   tradeData.sellBalanceOf = formatUnits(tradeData.sellBalanceOf, tradeData.sellTokenContract.decimals);
-    //   setSellBalanceOf(tradeData.sellBalanceOf);
-    //   // alert(`formatUnits(${tradeData.sellBalanceOf}, ${tradeData.sellTokenContract.decimals}) = ${tradeData.sellBalanceOf}`)
-    // }, [tradeData.sellBalanceOf]);
+    //   exchangeContext.sellBalanceOf = formatUnits(exchangeContext.sellBalanceOf, exchangeContext.sellTokenContract.decimals);
+    //   setSellBalanceOf(exchangeContext.sellBalanceOf);
+    //   // alert(`formatUnits(${exchangeContext.sellBalanceOf}, ${exchangeContext.sellTokenContract.decimals}) = ${exchangeContext.sellBalanceOf}`)
+    // }, [exchangeContext.sellBalanceOf]);
 
     useEffect(() => {
       const chain = ACTIVE_ACCOUNT.chain;
-      if (chain != undefined && exchangeContext.tradeData.network.chainId !== chain.id) {
+      if (chain != undefined && exchangeContext.network.chainId !== chain.id) {
         resetContextNetwork(chain)
         console.debug(`exchangeContext = ${stringifyBigInt(exchangeContext)}`)
-        setSellTokenContract(exchangeContext.tradeData.sellTokenContract);
-        setBuyTokenContract(exchangeContext.tradeData.buyTokenContract);
-        setRecipientElement(exchangeContext.tradeData.recipientWallet);
-        setAgentElement(exchangeContext.tradeData.agentWallet);
-        setDisplayState(exchangeContext.tradeData.displayState);
-        setSlippage(exchangeContext.tradeData.slippage);
+        setSellTokenContract(exchangeContext.sellTokenContract);
+        setBuyTokenContract(exchangeContext.buyTokenContract);
+        setRecipientElement(exchangeContext.recipientAccount);
+        setAgentElement(exchangeContext.agentAccount);
+        setDisplayState(exchangeContext.displayState);
+        setSlippage(exchangeContext.slippage);
       }
-      // alert(`Price:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}\n `);
     }, [ACTIVE_ACCOUNT.chain]);
 
-// tradeData.sellTokenContract.decimals = sellDecimals
+// exchangeContext.sellTokenContract.decimals = sellDecimals
 
   // useEffect(() => {
-  //   alert(`SellContainer:tradeData = ${JSON.stringify(tradeData, null, 2)}`)
+  //   alert(`SellContainer:exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`)
   // }, []);
 
     useEffect(() => {
       // alert(`Price:sellAmount = ${sellAmount`)
-      tradeData.sellAmount = sellAmount;
-      // alert(`exchangeContext.tradeData.sellAmount:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`);
+      exchangeContext.sellAmount = sellAmount;
     }, [sellAmount]);
 
     useEffect(() => {
       // alert(`Price:buyAmount = ${buyAmount`)
-      tradeData.buyAmount = buyAmount;
-      // alert(`exchangeContext.tradeData.buyAmount:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`);
+      exchangeContext.buyAmount = buyAmount;
     }, [buyAmount]);
 
     useEffect(() => {
       console.debug(`PRICE:useEffect:setDisplayPanels(${displayState})`);
       setDisplayPanels(displayState);
-      exchangeContext.tradeData.displayState = displayState;
+      exchangeContext.displayState = displayState;
     },[displayState]);
 
     useEffect(() => {
       console.debug('PRICE:useEffect slippage changed to  ' + slippage);
-      exchangeContext.tradeData.slippage = slippage;
+      exchangeContext.slippage = slippage;
     }, [slippage]);
 
     useEffect(() => {
       console.debug("PRICE:useEffect:sellTokenContract.symbol changed to " + sellTokenContract.name);
-      exchangeContext.tradeData.sellTokenContract = sellTokenContract;
+      exchangeContext.sellTokenContract = sellTokenContract;
     }, [sellTokenContract]);
 
     useEffect(() => {
@@ -113,13 +109,13 @@ export default function PriceView() {
         setDisplayState(DISPLAY_STATE.SPONSOR_BUY) 
       else if (!isSpCoin(buyTokenContract)) 
         setDisplayState(DISPLAY_STATE.OFF)
-      exchangeContext.tradeData.buyTokenContract = buyTokenContract;
+      exchangeContext.buyTokenContract = buyTokenContract;
     }, [buyTokenContract]);
 
     useEffect(() => {
-      console.debug("PRICE:useEffect:recipientWallet changed to " + recipientWallet.name);
-      exchangeContext.tradeData.recipientWallet = recipientWallet;
-    }, [recipientWallet]);
+      console.debug("PRICE:useEffect:recipientAccount changed to " + recipientAccount.name);
+      exchangeContext.recipientAccount = recipientAccount;
+    }, [recipientAccount]);
 
     useEffect(() => {
       if (errorMessage.name !== "" && errorMessage.message !== "") {
@@ -147,7 +143,7 @@ export default function PriceView() {
       return priceTransaction;
     }
 
-    const apiCall = "http://localhost:3000/api/" + tradeData.network.name.toLowerCase() + "/0X/price";
+    const apiCall = "http://localhost:3000/api/" + exchangeContext.network.name.toLowerCase() + "/0X/price";
 
     const { isLoading: isLoadingPrice } = useSWR(
       [
@@ -233,8 +229,8 @@ export default function PriceView() {
           <SellTokenDialog connectedWalletAddr={connectedWalletAddr} buyTokenContract={buyTokenContract} callBackSetter={setSellTokenContract} />
           <BuyTokenDialog connectedWalletAddr={connectedWalletAddr} sellTokenContract={sellTokenContract} callBackSetter={setBuyTokenContract} />
           <ManageSponsorships connectedWalletAddr={connectedWalletAddr} sellTokenContract={sellTokenContract} callBackSetter={setBuyTokenContract} />
-          <RecipientDialog agentWallet={agentWallet} setRecipientElement={setRecipientElement} />
-          <AgentDialog recipientWallet={recipientWallet} callBackSetter={setAgentElement} />
+          <RecipientDialog agentAccount={agentAccount} setRecipientElement={setRecipientElement} />
+          <AgentDialog recipientAccount={recipientAccount} callBackSetter={setAgentElement} />
           <ErrorDialog errMsg={errorMessage} />
           <div className={styles.tradeContainer}>
             <TradeContainerHeader slippage={slippage} setSlippageCallback={setSlippage}/>
@@ -251,13 +247,13 @@ export default function PriceView() {
                            disabled={false}
                            setDisplayState={setDisplayState} />          
             <BuySellSwapButton sellTokenContract={sellTokenContract} buyTokenContract={buyTokenContract} setSellTokenContract={setSellTokenContract} setBuyTokenContract={setBuyTokenContract} />
-            <PriceButton exchangeContext={exchangeContext} />
+            <PriceButton exchangeContext={exchangeContext} tradeData={exchangeContext.tradeData} />
               {
                 // <QuoteButton sendTransaction={sendTransaction}/>
               }
-            <RecipientContainer recipientWallet={recipientWallet} setDisplayState={setDisplayState}/>
+            <RecipientContainer recipientAccount={recipientAccount} setDisplayState={setDisplayState}/>
             <SponsorRateConfig setDisplayState={setDisplayState}/>
-            <AffiliateFee price={price} sellTokenContract={sellTokenContract} buyTokenContract={buyTokenContract} />
+            <AffiliateFee price={price} buyTokenContract={buyTokenContract} />
           </div>
           <FeeDisclosure/>
           <IsLoadingPrice isLoadingPrice={isLoadingPrice} />

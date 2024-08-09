@@ -18,14 +18,7 @@ interface PriceRequestParams {
   connectedWalletAddr?: string;
 }
 
-type ContractRecs = {
-    nameRec:any,
-    symbolRec:any,
-    decimalRec:any,
-    totalSupplyRec:any
-  }
-  
-type WalletElement = {
+type AccountRecord = {
   address: Address|string;
   name: string;
   symbol: string;
@@ -33,12 +26,19 @@ type WalletElement = {
   url: string;
 }
 
+type ContractRecs = {
+  nameRec:any,
+  symbolRec:any,
+  decimalRec:any,
+  totalSupplyRec:any
+}
+
 type TokenContract = {
   chainId : number | undefined,
   address : any,
   name :string | undefined,
   symbol :string | undefined,
-  decimals : number,
+  decimals : number | undefined,
   totalSupply : any,
   img: string | undefined;
 }
@@ -52,29 +52,31 @@ type NetworkElement = {
 }
 
 type TradeData = {
-
-  network: NetworkElement;
-
-  recipientWallet: WalletElement;
-  agentWallet: WalletElement;
-
-  sellTokenContract: TokenContract;
-  buyTokenContract: TokenContract;
-
-  connectedWalletAddr:any,
-  sellAmount:string;
+  sellAmount:bigint;
   sellBalanceOf:bigint;
   sellFormattedBalance:string;
-  buyAmount:string;
+  buyAmount:bigint;
   buyBalanceOf:bigint;
   buyFormattedBalance:string;
-  tradeDirection:string
-  displayState: DISPLAY_STATE;
+  tradeDirection:string;
   slippage: string;
 }
 
 type ExchangeContext = {
+  [x: string]: any;
+
+  network: NetworkElement;
+
+  recipientAccount: AccountRecord;
+  agentAccount: AccountRecord;
+
+  sellTokenContract: TokenContract;
+  buyTokenContract: TokenContract;
+
   tradeData: TradeData;
+
+  connectedWalletAddr:any,
+  displayState: DISPLAY_STATE;
 }
 
 export {
@@ -85,10 +87,10 @@ export {
 
 export type {
   ContractRecs,
-  ExchangeContext,
   NetworkElement,
   PriceRequestParams,
   TokenContract,
   TradeData,
-  WalletElement
+  ExchangeContext,
+  AccountRecord
 }

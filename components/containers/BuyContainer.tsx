@@ -2,12 +2,13 @@ import React, { useEffect } from 'react';
 
 import { exchangeContext } from "@/lib/context";
 
+
 import styles from '@/styles/Exchange.module.css';
 import AssetSelect from './AssetSelect';
 import { DISPLAY_STATE, TokenContract, TradeData } from '@/lib/structure/types';
-import { getFormattedClientBalanceOf, getERC20WagmiClientBalanceOfStr, getERC20WagmiClientDecimals, getERC20WagmiClientBalanceOf, formatDecimals } from '@/lib/wagmi/erc20WagmiClientRead';
+import { getERC20WagmiClientDecimals, getERC20WagmiClientBalanceOf, formatDecimals } from '@/lib/wagmi/erc20WagmiClientRead';
 import AddSponsorButton from '../Buttons/AddSponsorButton';
-import { isSpCoin } from '@/lib/spCoin/utils';
+import { isSpCoin, stringifyBigInt } from '@/lib/spCoin/utils';
 
 type Props = {
   activeAccount: any,
@@ -18,14 +19,13 @@ type Props = {
   disabled:boolean
 }
 
-const tradeData:TradeData = exchangeContext.tradeData;
-
 const BuyContainer = ({activeAccount, buyAmount, buyTokenContract, setBuyAmount, setDisplayState, disabled} : Props) => {
   try {
-    console.debug(`BuyContainer.exchangeContext.tradeData = \n${JSON.stringify(exchangeContext.tradeData, (_, v) => typeof v === 'bigint' ? v.toString() : v,2)}`);
-    tradeData.buyTokenContract.decimals = getERC20WagmiClientDecimals(buyTokenContract.address) || 0;
+    const tradeData:TradeData = exchangeContext.tradeData;
+    console.debug(`BuyContainer:exchangeContext = \n${stringifyBigInt(exchangeContext)}`);
+    exchangeContext.buyTokenContract.decimals = getERC20WagmiClientDecimals(buyTokenContract.address) || 0;
     tradeData.buyBalanceOf = getERC20WagmiClientBalanceOf(activeAccount.address, buyTokenContract.address) || 0n;
-    tradeData.buyFormattedBalance = formatDecimals(tradeData.buyBalanceOf, tradeData.buyTokenContract.decimals);
+    tradeData.buyFormattedBalance = formatDecimals(tradeData.buyBalanceOf, exchangeContext.buyTokenContract.decimals);
     let IsSpCoin = isSpCoin(buyTokenContract);
     return (
       <div className={styles.inputs}>
@@ -42,8 +42,8 @@ const BuyContainer = ({activeAccount, buyAmount, buyTokenContract, setBuyAmount,
       </div>
     );
   } catch (err:any) {
-    console.log(`Buy Container Error:\n ${err.message}\n${JSON.stringify(tradeData,null,2)}`)
-    // alert(`Buy Container Error:\n ${err.message}\n${JSON.stringify(tradeData,null,2)}`)
+    console.log(`Buy Container Error:\n ${err.message}\n${JSON.stringify(exchangeContext,null,2)}`)
+    // alert(`Buy Container Error:\n ${err.message}\n${JSON.stringify(exchangeContext,null,2)}`)
   }
 }
 

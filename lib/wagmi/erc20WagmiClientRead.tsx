@@ -17,7 +17,7 @@ const getERC20WagmiClientBalanceOfRec = (connectedWalletAddr: Address | string |
     args: [getAddress(connectedWalletAddr || BURN_ADDRESS)],
     config, 
   })
-  // console.debug(`getERC20WagmiClientBalanceOfRec.wagmiBalanceOfRec = ${JSON.stringify(wagmiBalanceOfRec, (_, v) => typeof v === 'bigint' ? v.toString() : v,2)}`)
+  // console.debug(`getERC20WagmiClientBalanceOfRec.wagmiBalanceOfRec = ${stringifyBigInt(wagmiBalanceOfRec)}`)
   return wagmiBalanceOfRec;
 }
 
@@ -61,7 +61,7 @@ const getERC20WagmiClientTotalSupplyRec = (contractAddress:Address | undefined) 
     functionName: 'totalSupply',
     config, 
   })
-  // console.debug("QQQQQ :\n"+JSON.stringify(wagmiTotalSupplyRec, (_, v) => typeof v === 'bigint' ? v.toString() : v, 2))
+  // console.debug("QQQQQ :\n"+stringifyBigInt(wagmiTotalSupplyRec))
   return wagmiTotalSupplyRec;
 }
 

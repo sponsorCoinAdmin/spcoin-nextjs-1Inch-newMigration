@@ -4,15 +4,14 @@ import { exchangeContext } from "@/lib/context";
 
 import styles from '@/styles/Exchange.module.css';
 import AssetSelect from './AssetSelect';
-import { TradeData, TokenContract } from '@/lib/structure/types';
-import { setValidPriceInput } from '@/lib/spCoin/utils';
+import { ExchangeContext, TokenContract, TradeData } from '@/lib/structure/types';
+import { setValidPriceInput, stringifyBigInt } from '@/lib/spCoin/utils';
 import { formatDecimals, getERC20WagmiClientBalanceOf, getERC20WagmiClientDecimals, getFormattedClientBalanceOf } from '@/lib/wagmi/erc20WagmiClientRead';
 import { isSpCoin } from '@/lib/spCoin/utils';
 import ManageSponsorsButton from '../Buttons/ManageSponsorsButton';
-import { DISPLAY_STATE } from '@/lib/structure copy/types';
+import { DISPLAY_STATE } from '@/lib/structure/types';
 
 type Props = {
-  // tradeData:TradeData,
   activeAccount:any,
   sellAmount: string,
   sellTokenContract: TokenContract, 
@@ -21,12 +20,12 @@ type Props = {
   disabled: boolean
 }
 
-const tradeData:TradeData = exchangeContext.tradeData;
+// const exchangeContext:ExchangeContext = exchangeContext;
 
     // useEffect(() => {
     //   // alert(`Price:sellAmount = ${sellAmount`)
-    //   tradeData.sellAmount = sellAmount;
-    //   // alert(`exchangeContext.tradeData.sellAmount:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`);
+    //   exchangeContext.sellAmount = sellAmount;
+    //   // alert(`exchangeContext.sellAmount:useEffect(() => exchangeContext = ${JSON.stringify(exchangeContext, null, 2)}`);
     // }, [sellAmount]);
 
 /* Sell Token Selection Module */
@@ -36,21 +35,22 @@ const SellContainer = ({activeAccount,
                         setSellAmount,
                         setDisplayState,
                         disabled} : Props) => {
-  // console.debug("tradeData.sellBalanceOf = " + tradeData.sellBalanceOf)
-  // tradeData.sellBalanceOf = formatUnits(tradeData.sellBalanceOf, tradeData.sellTokenContract.decimals);
+  // console.debug("exchangeContext.sellBalanceOf = " + exchangeContext.sellBalanceOf)
+  // exchangeContext.sellBalanceOf = formatUnits(exchangeContext.sellBalanceOf, exchangeContext.sellTokenContract.decimals);
   // console.debug(`getFormattedClientBalanceOf(${activeAccount.address}, ${sellTokenContract.address}) = ${balanceOf}`)
   // const [formattedBalanceOf, setFormattedBalanceOf] = useState<string>(getFormattedClientBalanceOf(activeAccount.address, sellTokenContract.address || "0"));
 
   try {
-    console.debug(`SellContainer.exchangeContext.tradeData = \n${JSON.stringify(exchangeContext.tradeData, (_, v) => typeof v === 'bigint' ? v.toString() : v,2)}`);
-    tradeData.sellTokenContract.decimals = getERC20WagmiClientDecimals(sellTokenContract.address) || 0;
+    const tradeData:TradeData = exchangeContext.tradeData;
+    console.debug(`SellContainer.exchangeContext = \n${stringifyBigInt(exchangeContext)}`);
+    exchangeContext.sellTokenContract.decimals = getERC20WagmiClientDecimals(sellTokenContract.address) || 0;
     tradeData.sellBalanceOf = getERC20WagmiClientBalanceOf(activeAccount.address, sellTokenContract.address) || 0n;
-    tradeData.sellFormattedBalance = formatDecimals(tradeData.sellBalanceOf, tradeData.sellTokenContract.decimals);
+    tradeData.sellFormattedBalance = formatDecimals(tradeData.sellBalanceOf, exchangeContext.sellTokenContract.decimals);
     let IsSpCoin = isSpCoin(sellTokenContract);
     return (
       <div className={styles.inputs}>
         <input id="sell-amount-id" className={styles.priceInput} placeholder="0" disabled={disabled} value={sellAmount}
-          onChange={(e) => { setValidPriceInput(e.target.value, sellTokenContract.decimals, setSellAmount); }} />
+          onChange={(e) => { setValidPriceInput(e.target.value, sellTokenContract.decimals || 0, setSellAmount); }} />
         <AssetSelect TokenContract={sellTokenContract} id={"sellTokenDialog"} disabled={disabled}></AssetSelect>
         {/* <div className={styles["assetSelect"]}>
             <img alt={sellTokenContract.name} className="h-9 w-9 mr-2 rounded-md cursor-pointer" src={sellTokenContract.img} onClick={() => alert("sellTokenContract " + JSON.stringify(sellTokenContract,null,2))}/>
@@ -74,8 +74,8 @@ const SellContainer = ({activeAccount,
       </div>
     );
   } catch (err:any) {
-    console.debug (`Sell Container Error:\n ${err.message}\n${JSON.stringify(tradeData,null,2)}`)
-    // alert(`Sell Container Error:\n ${err.message}\n${JSON.stringify(tradeData,null,2)}`)
+    console.debug (`Sell Container Error:\n ${err.message}\n${JSON.stringify(exchangeContext,null,2)}`)
+    // alert(`Sell Container Error:\n ${err.message}\n${JSON.stringify(exchangeContext,null,2)}`)
   }
 }
 

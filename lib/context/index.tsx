@@ -1,12 +1,22 @@
 'use client'
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { getDefaultNetworkSettings } from '@/lib/network/initialize/defaultNetworkSettings';
-import { DISPLAY_STATE, EXCHANGE_STATE, ExchangeContext, TradeData } from '@/lib/structure/types';
+import { DISPLAY_STATE, ExchangeContext, TradeData } from '@/lib/structure/types';
 import { TokenContract } from "@/lib/structure/types";
 import { useAccount, useChainId } from 'wagmi';
 // import { isSpCoin } from '@/lib/spCoin/utils';
 
-let chainId:number = 1;
+const chainId:number = 1;
+const defaultInitialTradeData:TradeData = {
+    sellAmount: 0n,
+    sellBalanceOf: 0n,
+    sellFormattedBalance: '0',
+    buyAmount: 0n,
+    buyBalanceOf: 0n,
+    buyFormattedBalance: '0',
+    tradeDirection: "sell",
+    slippage: "0.02",
+};
 let exchangeContext:ExchangeContext;
 
 const isSpCoin = (TokenContract:TokenContract) => {
@@ -14,59 +24,44 @@ const isSpCoin = (TokenContract:TokenContract) => {
     return TokenContract.symbol === "SpCoin" ? true:false
   }  
 
-const getInitialContext = (chain:any) => {
-    let tradeData =  getInitialDataSettings(chain);
-    let initialContext:ExchangeContext = {
-        tradeData: tradeData,
-    }
-    return initialContext;
-}
-
-function getInitialDataSettings(chain:any | number): TradeData {
+function getInitialContext(chain:any | number): ExchangeContext {
     const chainId:number = chain || 1;
     const defaultNetworkSettings = getDefaultNetworkSettings(chainId)
     const ifBuyTokenSpCoin = isSpCoin(defaultNetworkSettings.defaultBuyToken)
 
-    let tradeData:TradeData = {
+    exchangeContext = {
+
+        connectedWalletAddr: undefined,
 
         network: defaultNetworkSettings.networkHeader,
 
-        recipientWallet: defaultNetworkSettings.defaultRecipient,
-        agentWallet: defaultNetworkSettings.defaultAgent,
+        recipientAccount: defaultNetworkSettings.defaultRecipient,
+        agentAccount: defaultNetworkSettings.defaultAgent,
 
         sellTokenContract: defaultNetworkSettings.defaultSellToken,
         buyTokenContract: defaultNetworkSettings.defaultBuyToken,
 
-        connectedWalletAddr: undefined,
-        sellAmount: "0",
-        sellBalanceOf: 0n,
-        sellFormattedBalance: '0',
-        buyAmount: "0",
-        buyBalanceOf: 0n,
-        buyFormattedBalance: '0',
-        tradeDirection: "sell",
+        tradeData: defaultInitialTradeData,
         displayState: ifBuyTokenSpCoin ? DISPLAY_STATE.SPONSOR_SELL_ON : DISPLAY_STATE.OFF,
-        slippage: "0.02",
     }
-    return tradeData;
+    return exchangeContext;
 }
 
 const resetContextNetwork = (chain:any) => {
     const networkName = chain.name.toLowerCase();
     console.debug("resetContextNetwork: newNetworkName = " + networkName);
-    console.debug("resetContextNetwork: exchangeContext.tradeData.network.name = " + exchangeContext.tradeData.network.name);
+    console.debug("resetContextNetwork: exchangeContext.network.name = " + exchangeContext.network.name);
     console.debug(`UPDATING NETWORK to ${networkName}`);
 
     const defaultNetworkSettings = getDefaultNetworkSettings(networkName)
     console.debug(`Loaded defaultNetworkSettings for ${networkName}: ${JSON.stringify(defaultNetworkSettings,null,2)}`);
-    exchangeContext.tradeData.network.chainId = chain.id;
-    exchangeContext.tradeData.network.name = networkName
-    exchangeContext.tradeData.displayState = isSpCoin(defaultNetworkSettings.defaultBuyToken) ? DISPLAY_STATE.SPONSOR_SELL_ON:DISPLAY_STATE.OFF,
-    exchangeContext.tradeData.slippage = "0.02",
-    exchangeContext.tradeData.sellTokenContract = defaultNetworkSettings.defaultSellToken,
-    exchangeContext.tradeData.buyTokenContract = defaultNetworkSettings.defaultBuyToken,
-    exchangeContext.tradeData.recipientWallet = defaultNetworkSettings.defaultRecipient,
-    exchangeContext.tradeData.agentWallet = defaultNetworkSettings.defaultAgent
+    exchangeContext.network.chainId = chain.id;
+    exchangeContext.network.name = networkName
+    exchangeContext.displayState = isSpCoin(defaultNetworkSettings.defaultBuyToken) ? DISPLAY_STATE.SPONSOR_SELL_ON:DISPLAY_STATE.OFF,
+    exchangeContext.sellTokenContract = defaultNetworkSettings.defaultSellToken,
+    exchangeContext.buyTokenContract = defaultNetworkSettings.defaultBuyToken,
+    exchangeContext.recipientAccount = defaultNetworkSettings.defaultRecipient,
+    exchangeContext.agentAccount = defaultNetworkSettings.defaultAgent
 }
 
 export function ExchangeWrapper({children} : {
@@ -80,8 +75,6 @@ export function ExchangeWrapper({children} : {
         alert(`Context:useEffect(() => chain = ${JSON.stringify(chain, null, 2)}`);
       }, [chain]);
     
-    const [context, setContext] = useState<ExchangeContext>(getInitialContext(chain))
-    exchangeContext = context;
 
     return (
         <div>
@@ -90,10 +83,9 @@ export function ExchangeWrapper({children} : {
     )
 }
 
-exchangeContext = getInitialContext(chainId);
-// alert(`getInitialContext:exchangeContext = ${exchangeContext}`)
+getInitialContext(chainId);
 
 export {
-    exchangeContext,
-    resetContextNetwork
+    resetContextNetwork,
+    exchangeContext
 }

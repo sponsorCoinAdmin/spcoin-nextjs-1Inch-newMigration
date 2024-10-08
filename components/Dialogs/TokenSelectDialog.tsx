@@ -125,8 +125,8 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
             </div>
             <div className={styles.modalBox} >
                 <InputSelect placeHolder={INPUT_PLACE_HOLDER}
-                             inputField={inputField || ""}
-                             setInputField={setTokenContractCallBack}/>
+                             newInputField={inputField || ""}
+                             newInputFieldCallBack={setTokenContractCallBack}/>
 
                 {(inputField &&
                     <div id="inputSelectGroup_ID" className={styles.modalInputSelect}>

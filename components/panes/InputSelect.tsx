@@ -9,32 +9,26 @@ import styles from '@/styles/Modal.module.css';
 // import searchMagGlassGrey_png from '@/public/resources/images/SearchMagGlassGrey.png'
 import searchMagGlassGrey_png from '@/public/resources/images/SearchMagGlassGrey.png'
 import Image from 'next/image'
-import { TokenContract } from '@/lib/structure/types';
-import { Address } from "viem";
 import { useErc20ClientContract } from "@/lib/wagmi/erc20WagmiClientRead";
 
 type Props = {
   placeHolder:string,
-  inputField:any,
-  setInputField:(inputField:any) => void 
+  newInputField:any,
+  newInputFieldCallBack:(inputField:any) => void 
 }
 
-function InputSelect({ placeHolder, inputField, setInputField }:Props) {
-  const [ inputFieldOLD, setInputFieldOLD ] = useState<any>();
-  const tokenContract = useErc20ClientContract(inputFieldOLD)
+function InputSelect({ placeHolder, newInputField, newInputFieldCallBack }:Props) {
+  const [ inputField, setInputField ] = useState<any>();
+  const tokenContract = useErc20ClientContract(inputField)
 
   useEffect(() => {
-    setInputFieldOLD(inputField || "")
-  }, [inputField])
+    setInputField(newInputField || "")
+  }, [newInputField])
   
   useEffect(() => {
-    setInputField(tokenContract)
+    newInputFieldCallBack(tokenContract)
   }, [tokenContract])
   
-  const setTokenInputField = (event:any) => {
-    setInputFieldOLD(event.target.value)
-  }
-
   return (
     <div className={styles.modalElementSelect}>
       <div className={styles.leftH}>
@@ -42,9 +36,9 @@ function InputSelect({ placeHolder, inputField, setInputField }:Props) {
         <input className={styles.modalElementSelect} 
                autoComplete="off" 
                placeholder={placeHolder} 
-               value={inputFieldOLD} 
-               onChange={setTokenInputField}/>
-               {/* onChange={ (e) => setInputFieldOLD(e.target.value) }/> */}
+               value={inputField} 
+               onChange={(e) => setInputField(e.target.value) }/>
+               {/* onChange={ (e) => setInputField(e.target.value) }/> */}
       </div>
     </div>
   );

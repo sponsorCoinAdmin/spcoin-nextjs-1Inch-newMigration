@@ -15,24 +15,24 @@ import { useErc20ClientContract } from "@/lib/wagmi/erc20WagmiClientRead";
 
 type Props = {
   placeHolder:string,
-  textInputField:any,
-  setTokenContractCallBack:(tokenContract:TokenContract) => void 
+  inputField:any,
+  setInputField:(inputField:any) => void 
 }
 
-function InputSelect({ placeHolder, textInputField, setTokenContractCallBack }:Props) {
-  const [ inputField, setInputField ] = useState<any>();
-  const tokenContract = useErc20ClientContract(inputField)
+function InputSelect({ placeHolder, inputField, setInputField }:Props) {
+  const [ inputFieldOLD, setInputFieldOLD ] = useState<any>();
+  const tokenContract = useErc20ClientContract(inputFieldOLD)
 
   useEffect(() => {
-    setInputField(textInputField || "")
-  }, [textInputField])
+    setInputFieldOLD(inputField || "")
+  }, [inputField])
   
   useEffect(() => {
-    setTokenContractCallBack(tokenContract)
+    setInputField(tokenContract)
   }, [tokenContract])
   
   const setTokenInputField = (event:any) => {
-    setInputField(event.target.value)
+    setInputFieldOLD(event.target.value)
   }
 
   return (
@@ -42,9 +42,9 @@ function InputSelect({ placeHolder, textInputField, setTokenContractCallBack }:P
         <input className={styles.modalElementSelect} 
                autoComplete="off" 
                placeholder={placeHolder} 
-               value={inputField} 
+               value={inputFieldOLD} 
                onChange={setTokenInputField}/>
-               {/* onChange={ (e) => setInputField(e.target.value) }/> */}
+               {/* onChange={ (e) => setInputFieldOLD(e.target.value) }/> */}
       </div>
     </div>
   );

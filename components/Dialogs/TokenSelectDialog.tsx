@@ -43,12 +43,12 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
     }, [showDialog])
 
     useEffect(() => {
-        alert(`tokenAddress = ${tokenAddress}`)
+        // alert(`tokenAddress = ${tokenAddress}`)
         fetchIconResource(tokenAddress)
     }, [tokenAddress])
 
     useEffect(() => {
-        alert(`tokenIconPath = ${tokenIconPath}`)
+        // alert(`tokenIconPath = ${tokenIconPath}`)
     }, [tokenIconPath])
 
     async function fetchIconResource(tokenAddress:string|undefined) {

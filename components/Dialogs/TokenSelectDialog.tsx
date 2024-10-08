@@ -10,6 +10,7 @@ import DataList from './Resources/DataList';
 import { useAccount } from 'wagmi';
 import InputSelect from '../panes/InputSelect';
 import { Address, getAddress } from 'viem';
+import { useErc20ClientContract } from '@/lib/wagmi/erc20WagmiClientRead';
 
 const TITLE_NAME = "Select a token to select";
 const INPUT_PLACE_HOLDER = 'Type or paste token to select address';
@@ -90,23 +91,8 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
         dialogRef.current?.showModal();
     }
 
-    const displayElementDetail = async(tokenAddr:any) => {
-        if (!(await setTokenDetails(tokenAddr))) {
-            alert("SELECT_ERROR:displayElementDetail Invalid Token Address: " + inputField + "\n\n" + ELEMENT_DETAILS)
-            return false
-        }
-        // alert("displayElementDetail\n" + JSON.stringify(inputField, null, 2) + "\n\n" + ELEMENT_DETAILS)
-        return true
-    }
-
-    const setTokenDetails = async(tokenAddr: any) => {
-        const tokenDetails = getTokenDetails(ACTIVE_ACCOUNT.chainId, tokenAddr, setTokenContract)
-        console.debug(`tokenDetails = ${tokenDetails}`);
-        return tokenDetails
-    }
-
-     const updateTokenCallback = (tokenContract: TokenContract | undefined) => {
-        // alert("updateTokenCallback: " +JSON.stringify(tokenContract,null,2))
+    const updateTokenCallback = (tokenContract: TokenContract | undefined) => {
+        // alert(`**************updateTokenCallback(tokenContract) = ${stringifyBigInt(tokenContract)}`)
         try {
             if (!tokenContract) {
                 alert("SELECT_ERROR: Invalid Token address : " + inputField);
@@ -142,7 +128,7 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
                              textInputField={inputField || ""}
                              setTokenContractCallBack={setTokenContractCallBack}/>
 
-                {(tokenSymbol && 
+                {(inputField &&
                     <div id="inputSelectGroup_ID" className={styles.modalInputSelect}>
                         <div className="flex flex-row justify-between mb-1 pt-2 px-5 hover:bg-spCoin_Blue-900" >
                             <div className="cursor-pointer flex flex-row justify-between" onClick={() => updateTokenCallback(tokenContract)} >
@@ -157,7 +143,7 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
                                     <div className={styles.elementSymbol}>{tokenSymbol}</div> 
                                 </div>
                             </div>
-                            <div className="py-3 cursor-pointer rounded border-none w-8 h-8 text-lg font-bold text-white"  onClick={() => displayElementDetail(inputField)}>
+                            <div className="py-3 cursor-pointer rounded border-none w-8 h-8 text-lg font-bold text-white"  onClick={() => alert(stringifyBigInt(tokenContract))}>
                                 <Image src={info_png} className={styles.infoLogo} alt="Info Image" />
                             </div>
                         </div>

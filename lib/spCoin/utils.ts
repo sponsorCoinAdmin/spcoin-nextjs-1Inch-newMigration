@@ -168,15 +168,15 @@ const getValidAddress = (addrType:any, chainId?:number) => {
 }
 
 async function fetchIconResource(contractAddress:Address | undefined,
-  setTokenIconPath:(iconPath:string) => void) {
+  setTokenIconPathCallBack:(iconPath:string) => void) {
   const tokenIconPath = `/resources/images/tokens/${contractAddress}.png`
   // alert(`BEFORE: TokenSelectDialog:fetchIconResource(${tokenIconPath})`)
   const res = await fetch(tokenIconPath || "")
   if (res.ok) {
-      setTokenIconPath(tokenIconPath)
+    setTokenIconPathCallBack(tokenIconPath)
   } 
   else {
-      setTokenIconPath(defaultMissingImage)
+    setTokenIconPathCallBack(defaultMissingImage)
   }
 }
 

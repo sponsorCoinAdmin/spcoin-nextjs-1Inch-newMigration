@@ -31,45 +31,39 @@ type Props = {
 export default function Dialog({showDialog, setShowDialog, altTokenContract, callBackSetter }: Props) {
     const ACTIVE_ACCOUNT = useAccount();
     const dialogRef = useRef<null | HTMLDialogElement>(null)
-    const [tokenAddress, setTokenAddress] = useState<Address|undefined>();
+    const [inputField, setInputField] = useState<any>();
+    const [validAddress, setValidAddress] = useState<Address>();
     const [tokenName, setTokenName] = useState<string|undefined>();
     const [tokenSymbol, setTokenSymbol] = useState<string|undefined>();
     const [tokenIconPath, setTokenIconPath] = useState<string|undefined>()
     let tokenContract:TokenContract|undefined;
 
-     useEffect(() => {
+    useEffect(() => {
         showDialog ? openDialog() : closeDialog()
     }, [showDialog])
 
     useEffect(() => {
-        // alert(`tokenAddress = ${tokenAddress}`)
-        fetchIconResource(tokenAddress)
-    }, [tokenAddress])
-
-    useEffect(() => {
-        // alert(`tokenIconPath = ${tokenIconPath}`)
+        if (tokenContract && tokenIconPath) {
+            // alert(`TokenSelectDialog:useEffect:tokenIconPath = (${tokenIconPath})`)
+            tokenContract.img = tokenIconPath;
+        }
     }, [tokenIconPath])
 
-    async function fetchIconResource(tokenAddress:string|undefined) {
-        const tokenImageDir = `/resources/images/tokens/${tokenAddress}.png`
-        const res = await fetch(tokenImageDir)
-        if (!res.ok) {
-            setTokenIconPath(defaultMissingImage)
-        }
-        else
-           setTokenIconPath(tokenImageDir)
-    }
+    useEffect(() => {
+        // alert(`inputField = ${inputField}`)
+        fetchIconResource(inputField, setTokenIconPath)
+    }, [inputField])
 
     const setTokenContract = (_tokenContract:TokenContract) => {
         tokenContract = _tokenContract;
-        setTokenAddress(tokenContract.address)
+        setInputField(tokenContract.address)
         if (isAddress(tokenContract.address)) {
             // alert(`TokenSelectDialog.tokenContract = ${stringifyBigInt(tokenContract)}`)
             setTokenName(tokenContract.name);
             setTokenSymbol(tokenContract.symbol);
         }
         else
-            if (tokenAddress) {
+            if (inputField) {
                 setTokenName("Invalid Token Address");
                 setTokenSymbol("Please Enter Valid Token Address");
             }
@@ -85,7 +79,7 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
     }
 
     const closeDialog = () => {
-        setTokenAddress(undefined)
+        setInputField(undefined)
         setShowDialog(false);
         dialogRef.current?.close()
     }
@@ -98,10 +92,10 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
 
     const displayElementDetail = async(tokenAddr:any) => {
         if (!(await setTokenDetails(tokenAddr))) {
-            alert("SELECT_ERROR:displayElementDetail Invalid Token Address: " + tokenAddress + "\n\n" + ELEMENT_DETAILS)
+            alert("SELECT_ERROR:displayElementDetail Invalid Token Address: " + inputField + "\n\n" + ELEMENT_DETAILS)
             return false
         }
-        // alert("displayElementDetail\n" + JSON.stringify(tokenAddress, null, 2) + "\n\n" + ELEMENT_DETAILS)
+        // alert("displayElementDetail\n" + JSON.stringify(inputField, null, 2) + "\n\n" + ELEMENT_DETAILS)
         return true
     }
 
@@ -111,37 +105,29 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
         return tokenDetails
     }
 
-     const getSelectedListElement = (listElement: TokenContract | undefined) => {
-        // alert("getSelectedListElement: " +JSON.stringify(listElement,null,2))
+     const updateTokenCallback = (tokenContract: TokenContract | undefined) => {
+        // alert("updateTokenCallback: " +JSON.stringify(tokenContract,null,2))
         try {
-            if (listElement === undefined) {
-                alert("SELECT_ERROR: Invalid Token address : " + tokenAddress)
+            if (tokenContract === undefined) {
+                alert("SELECT_ERROR: Invalid Token address : " + inputField)
                 return false;
             }
-            if (!isAddress(listElement.address)) {
-                alert(`SELECT_ERROR: ${listElement.name} has invalid token address : ${listElement.address}`)
+            if (!isAddress(tokenContract.address)) {
+                alert(`SELECT_ERROR: ${tokenContract.name} has invalid token address : ${tokenContract.address}`);
                 return false;
             }
-            if (listElement.address === altTokenContract?.address) {
+            if (tokenContract.address === altTokenContract?.address) {
                 alert("SELECT_ERROR: Sell Token cannot be the same as Buy Token("+altTokenContract?.symbol+")")
                 console.log("ERROR: Sell Token cannot be the same as Buy Token("+altTokenContract?.symbol+")");
                 return false;
             }
-            callBackSetter(listElement)
+            callBackSetter(tokenContract)
             closeDialog()
         } catch (e:any) {
-            alert("SELECT_ERROR:getSelectedListElement e.message" + e.message)
+            alert("SELECT_ERROR:updateTokenCallback e.message" + e.message)
         }
         return false
     }
-
-    const getIconResourceURL = (tokenAddress:string) => {
-        const tokenImageDir = `/resources/images/tokens/${tokenAddress}.png`
-        console.log(`tokenImageDir = ${tokenImageDir}`)
-        return tokenImageDir;
-    }
-       
-    // fetchIconResource(getIconResourceURL(tokenAddress || ""), defaultMissingImage)
 
     const Dialog = (
         <dialog id="TokenSelectDialog" ref={dialogRef} className={styles.modalContainer}>
@@ -153,13 +139,13 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
             </div>
             <div className={styles.modalBox} >
                 <InputSelect placeHolder={INPUT_PLACE_HOLDER}
-                             textInputField={tokenAddress || ""}
+                             textInputField={inputField || ""}
                              setTokenContractCallBack={setTokenContractCallBack}/>
 
                 {(tokenSymbol && 
                     <div id="inputSelectGroup_ID" className={styles.modalInputSelect}>
                         <div className="flex flex-row justify-between mb-1 pt-2 px-5 hover:bg-spCoin_Blue-900" >
-                            <div className="cursor-pointer flex flex-row justify-between" onClick={() => getSelectedListElement(tokenContract)} >
+                            <div className="cursor-pointer flex flex-row justify-between" onClick={() => updateTokenCallback(tokenContract)} >
                                 <Image id="tokenImage" 
                                        src={tokenIconPath || defaultMissingImage }
                                        height={40}
@@ -171,14 +157,18 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
                                     <div className={styles.elementSymbol}>{tokenSymbol}</div> 
                                 </div>
                             </div>
-                            <div className="py-3 cursor-pointer rounded border-none w-8 h-8 text-lg font-bold text-white"  onClick={() => displayElementDetail(tokenAddress)}>
+                            <div className="py-3 cursor-pointer rounded border-none w-8 h-8 text-lg font-bold text-white"  onClick={() => displayElementDetail(inputField)}>
                                 <Image src={info_png} className={styles.infoLogo} alt="Info Image" />
                             </div>
                         </div>
                     </div>
                 )}
+                {/* <div>FTM 0x4e15361fd6b4bb609fa63c81a2be19d873717870</div>
+                <div>FLOK 0xcf0C122c6b73ff809C693DB761e7BaeBe62b6a2E</div>
+                <div>AAVI 0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9</div>
+                <div>CHKN 0xD55210Bb6898C021a19de1F58d27b71f095921Ee</div> */}
                 <div className={styles.modalScrollBar}>
-                    <DataList dataFeedType={FEED_TYPE.TOKEN_LIST} getSelectedListElement={getSelectedListElement}/>
+                    <DataList dataFeedType={FEED_TYPE.TOKEN_LIST} updateTokenCallback={updateTokenCallback}/>
                 </div>
             </div>
         </dialog>

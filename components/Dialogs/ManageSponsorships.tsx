@@ -85,8 +85,8 @@ export default function Dialog({showDialog, tokenContract, callBackSetter }: Pro
         return false
     }
 
-    const getSelectedListElement = async (listElement: TokenContract | undefined) => {
-        // alert("getSelectedListElement: " +JSON.stringify(listElement,null,2))
+    const updateTokenCallback = async (listElement: TokenContract | undefined) => {
+        // alert("updateTokenCallback: " +JSON.stringify(listElement,null,2))
         try {
             if (listElement === undefined) {
                 alert("Undefined Token address")
@@ -105,7 +105,7 @@ export default function Dialog({showDialog, tokenContract, callBackSetter }: Pro
             callBackSetter(listElement)
             closeDialog()
         } catch (e:any) {
-            alert("BUY_ERROR:getSelectedListElement e.message" + e.message)
+            alert("BUY_ERROR:updateTokenCallback e.message" + e.message)
         }
         return false
     }
@@ -136,7 +136,7 @@ export default function Dialog({showDialog, tokenContract, callBackSetter }: Pro
                 </div>
                     <div id="buySelectGroup_ID" className={styles.modalInputSelect}>
                     <div className="flex flex-row justify-between mb-1 pt-2 px-5 hover:bg-spCoin_Blue-900" >
-                        <div className="cursor-pointer flex flex-row justify-between" onClick={() => getSelectedListElement(TokenContract)} >
+                        <div className="cursor-pointer flex flex-row justify-between" onClick={() => updateTokenCallback(TokenContract)} >
                             <Image id="tokenImage" src={customUnknownImage_png} className={styles.elementLogo} alt="Search Image Grey" />
                             <div>
                                 <div className={styles.elementName}>{tokenSelect}</div>
@@ -149,7 +149,7 @@ export default function Dialog({showDialog, tokenContract, callBackSetter }: Pro
                     </div>
                 </div>
                 <div className={styles.modalScrollBar}>
-                    <DataList dataFeedType={FEED_TYPE.TOKEN_LIST} getSelectedListElement={getSelectedListElement}/>
+                    <DataList dataFeedType={FEED_TYPE.TOKEN_LIST} updateTokenCallback={updateTokenCallback}/>
                 </div>
             </div>
         </dialog>

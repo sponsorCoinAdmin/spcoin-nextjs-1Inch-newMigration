@@ -93,8 +93,8 @@ export default function Dialog({showDialog, recipientAccount, callBackSetter }: 
         return true
     }
 
-    const getSelectedListElement = (listElement: AccountRecord | undefined) => {
-        // alert("getSelectedListElement: " +JSON.stringify(listElement,null,2))
+    const updateTokenCallback = (listElement: AccountRecord | undefined) => {
+        // alert("updateTokenCallback: " +JSON.stringify(listElement,null,2))
         if (listElement === undefined) {
             alert("Invalid Wallet address : " + agentInput)
             return false;
@@ -134,7 +134,7 @@ export default function Dialog({showDialog, recipientAccount, callBackSetter }: 
                 </div>
                 <div id="agentContainerDiv_ID" className={styles.modalInputSelect}>
                     <div className="flex flex-row justify-between mb-1 pt-2 px-5 hover:bg-spCoin_Blue-900" >
-                        <div className="cursor-pointer flex flex-row justify-between" onClick={() => getSelectedListElement(walletElement)} >
+                        <div className="cursor-pointer flex flex-row justify-between" onClick={() => updateTokenCallback(walletElement)} >
                             <Image id="walletImage" src={customUnknownImage_png} className={styles.elementLogo} alt="Search Image Grey" />
                             <div>
                                 <div className={styles.elementName}>{walletSelect}</div>
@@ -147,7 +147,7 @@ export default function Dialog({showDialog, recipientAccount, callBackSetter }: 
                     </div>
                 </div>
                 <div className={styles.modalScrollBar}>
-                    <DataList dataFeedType={FEED_TYPE.AGENT_WALLETS} getSelectedListElement={getSelectedListElement}/>
+                    <DataList dataFeedType={FEED_TYPE.AGENT_WALLETS} updateTokenCallback={updateTokenCallback}/>
                 </div>
             </div>
         </dialog>

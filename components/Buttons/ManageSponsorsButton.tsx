@@ -1,13 +1,12 @@
+import React, { useState } from 'react';
 import styles from '@/styles/Exchange.module.css';
 import { TokenContract } from '@/lib/structure/types';
-import { useERC20WagmiClientBalanceOfStr } from '@/lib/wagmi/erc20WagmiClientRead';
 import { openDialog } from '../Dialogs/Dialogs';
 import ManageSponsorships from '../Dialogs/ManageSponsorships';
-import { useState } from 'react';
 
 type Props = {
   activeAccount: any,
-  tokenContract: TokenContract|undefined,
+  tokenContract: TokenContract,
 }
 
 const ManageSponsorsButton = ({activeAccount, tokenContract} : Props) => {

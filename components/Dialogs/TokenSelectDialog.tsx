@@ -108,8 +108,8 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
      const updateTokenCallback = (tokenContract: TokenContract | undefined) => {
         // alert("updateTokenCallback: " +JSON.stringify(tokenContract,null,2))
         try {
-            if (tokenContract === undefined) {
-                alert("SELECT_ERROR: Invalid Token address : " + inputField)
+            if (!tokenContract) {
+                alert("SELECT_ERROR: Invalid Token address : " + inputField);
                 return false;
             }
             if (!isAddress(tokenContract.address)) {

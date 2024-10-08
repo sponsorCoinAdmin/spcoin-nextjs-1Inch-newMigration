@@ -107,7 +107,7 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
     }
 
     const setTokenDetails = async(tokenAddr: any) => {
-        const tokenDetails = getTokenDetails(ACTIVE_ACCOUNT.address, ACTIVE_ACCOUNT.chainId, tokenAddr, setTokenContract)
+        const tokenDetails = getTokenDetails(ACTIVE_ACCOUNT.chainId, tokenAddr, setTokenContract)
         console.debug(`tokenDetails = ${tokenDetails}`);
         return tokenDetails
     }

@@ -1,17 +1,15 @@
 "use client"
 import styles from '@/styles/Modal.module.css';
 import { useEffect, useRef, useState } from 'react'
-import customUnknownImage_png from '/public/resources/images/miscellaneous/QuestionWhiteOnBlue.png'
 import info_png from '@/public/resources/images/info1.png'
 import Image from 'next/image'
 import { FEED_TYPE, TokenContract } from '@/lib/structure/types';
 import { isAddress } from 'ethers';
-import { getTokenDetails, fetchTokenDetails, stringifyBigInt } from '@/lib/spCoin/utils';
+import { defaultMissingImage, fetchIconResource, getTokenDetails, getValidAddress, stringifyBigInt } from '@/lib/spCoin/utils';
 import DataList from './Resources/DataList';
 import { useAccount } from 'wagmi';
 import InputSelect from '../panes/InputSelect';
-import { Address } from 'viem';
-
+import { Address, getAddress } from 'viem';
 
 const TITLE_NAME = "Select a token to select";
 const INPUT_PLACE_HOLDER = 'Type or paste token to select address';
@@ -19,6 +17,8 @@ const ELEMENT_DETAILS = "This container allows for the entry selection of a vali
     "When the address entry is completed and selected, "+
     "this address will be verified prior to entry acceptance.\n"+
     "Currently, there is no image token lookup, but that is to come."
+const INVALID_TOKEN_NAME = "Invalid Token Address";
+const INVALID_TOKEN_SYMBOL = "Please Enter Valid Token Address";
 
 type Props = {
     showDialog:boolean,
@@ -35,7 +35,6 @@ export default function Dialog({showDialog, setShowDialog, altTokenContract, cal
     const [tokenName, setTokenName] = useState<string|undefined>();
     const [tokenSymbol, setTokenSymbol] = useState<string|undefined>();
     const [tokenIconPath, setTokenIconPath] = useState<string|undefined>()
-    const defaultMissingImage = '/resources/images/miscellaneous/QuestionBlackOnRed.png';
     let tokenContract:TokenContract|undefined;
 
      useEffect(() => {

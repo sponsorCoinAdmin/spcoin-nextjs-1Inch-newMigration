@@ -6,6 +6,7 @@ import { Address, formatUnits, getAddress } from 'viem'
 import { erc20Abi } from 'viem'
 import { TokenContract, ContractRecs } from '../structure/types'
 import { BURN_ADDRESS } from '@/lib/network/utils';
+import { stringifyBigInt } from '../spCoin/utils'
 
 const useERC20WagmiClientBalanceOfRec = (connectedAccountAddr: Address | undefined, contractAddress: Address | undefined) => {
   // console.debug(`useERC20WagmiClientBalanceOfRec:connectedAccountAddr = ${connectedAccountAddr}, contractAddress = ${contractAddress}`)
@@ -116,7 +117,7 @@ const useErc20ClientContract = (contractAddress:Address | undefined) => {
     totalSupply:totalSupply,
     img:'/resources/images/miscellaneous/QuestionWhiteOnRed.png'
   }
-  // alert(`useErc20ClientContract.contractResponse = ${stringifyBigInt(contractResponse)}`)
+  console.debug(`useErc20ClientContract.contractResponse = ${stringifyBigInt(contractResponse)}`)
   return contractResponse
 }
 
